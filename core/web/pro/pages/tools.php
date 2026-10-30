@@ -26,7 +26,7 @@ $groups = [
 		["/list/stats/", "fa-chart-pie", "Estadísticas de uso", "Disco y tráfico por usuario"],
 		["/list/log/", "fa-clock-rotate-left", "Registro de acciones", "Auditoría del panel"],
 	],
-	"Hestia Pro" => [
+	"iaachz-panel" => [
 		["/pro/apps/#runtimes", "fa-layer-group", "Node.js y Python", "Versiones instaladas"],
 		["/pro/docker/", "fa-box", "Docker", "Contenedores, imágenes y Compose"],
 		["/pro/monitor/", "fa-chart-line", "Monitor", "CPU, RAM, disco y red"],

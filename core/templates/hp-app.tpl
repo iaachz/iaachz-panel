@@ -1,5 +1,5 @@
 #=========================================================================#
-# Hestia Pro: aplicación Node.js / Python / Docker / proxy                #
+# iaachz-panel: aplicación Node.js / Python / Docker / proxy                #
 # El destino (puerto o URL) vive en %home%/%user%/conf/web/%domain%/hp-app.conf
 # y lo gestiona `v-hp app-*`. No edites este archivo.                     #
 #=========================================================================#

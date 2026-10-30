@@ -2,14 +2,14 @@
 """Standalone admin-only Nginx/Tailscale assistant for HestiaCP."""
 import base64,datetime,fcntl,hashlib,http.client,ipaddress,json,os,pathlib,re,shutil,socket,subprocess,sys,tempfile,time
 
-ROOT=pathlib.Path('/var/lib/hestia-tunnels')
+ROOT=pathlib.Path('/var/lib/iaachz-tunnels')
 CONF=pathlib.Path('/etc/nginx/conf.d')
 BIN='/usr/local/hestia/bin/'
 ZONE_DIR=pathlib.Path('/etc/bind/manual-zones')
-ACME=pathlib.Path('/var/www/acme-hestia-tunnels')
+ACME=pathlib.Path('/var/www/acme-iaachz-tunnels')
 def _cfg():
     data={}
-    for path in ('/etc/hestia-tunnels/settings.json','/usr/local/hestia/data/hp/settings.json'):
+    for path in ('/etc/iaachz-tunnels/settings.json','/usr/local/hestia/data/hp/settings.json'):
         try:data.update(json.loads(pathlib.Path(path).read_text()))
         except (OSError,ValueError):pass
     return data
@@ -80,7 +80,7 @@ def existing_proxies():
     """Read-only inventory of VPN proxies installed before this assistant."""
     found={}
     for path in CONF.glob('*.conf'):
-        if path.name.startswith('hestia-tunnel-'):continue
+        if path.name.startswith('iaachz-tunnel-'):continue
         text=path.read_text(errors='replace')
         for start in re.finditer(r'\bserver\s*\{',text):
             depth=1;pos=start.end()
@@ -155,7 +155,7 @@ def proxy(s):
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header X-Forwarded-Port $server_port;
         proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection $hestia_tunnel_connection;
+        proxy_set_header Connection $iaachz_tunnel_connection;
         proxy_connect_timeout 10s;
         proxy_read_timeout 3600s;
         proxy_send_timeout 3600s;
@@ -193,7 +193,7 @@ server {{
 '''+proxy(s)+'}\n'
     return http
 def install(s):
-    p=CONF/('hestia-tunnel-'+ident(s['domain'])+'.conf');old=p.read_text() if p.exists() else None
+    p=CONF/('iaachz-tunnel-'+ident(s['domain'])+'.conf');old=p.read_text() if p.exists() else None
     p.write_text(render(s));p.chmod(0o644)
     try:run(['nginx','-t']);run(['systemctl','reload','nginx'])
     except Exception:
@@ -270,11 +270,11 @@ def create(user,text):
     try:s['dns_note']=add_dns(s)
     except Exception as e:s['dns_note']='No se pudo crear DNS automáticamente: '+str(e)
     s.update(status='pending',message='Comprobando DNS, conexión y certificado…');save(s)
-    run(['systemctl','start','--no-block','hestia-tunnels-reconcile.service'])
+    run(['systemctl','start','--no-block','iaachz-tunnels-reconcile.service'])
     return s
 def remove(user,d):
     s=load(valid_domain(d));owned(s,user)
-    p=CONF/('hestia-tunnel-'+ident(d)+'.conf');old=p.read_text() if p.exists() else None
+    p=CONF/('iaachz-tunnel-'+ident(d)+'.conf');old=p.read_text() if p.exists() else None
     p.unlink(missing_ok=True)
     try:run(['nginx','-t']);run(['systemctl','reload','nginx'])
     except Exception:
@@ -309,7 +309,7 @@ def main():
     if command=='delete':return remove(user,valid_domain(arg))
     if command=='retry':
         s=load(valid_domain(arg));owned(s,user);s.update(status='pending',message='Comprobando DNS, conexión y certificado…');save(s)
-        run(['systemctl','start','--no-block','hestia-tunnels-reconcile.service']);return s
+        run(['systemctl','start','--no-block','iaachz-tunnels-reconcile.service']);return s
     raise Error('Acción no válida.')
 if __name__=='__main__':
     try:print(json.dumps({'ok':True,'result':main()},ensure_ascii=False))

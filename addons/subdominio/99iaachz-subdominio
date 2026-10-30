@@ -1,0 +1,1 @@
+DPkg::Post-Invoke { "if [ -x /opt/iaachz-subdominio/aplicar.sh ]; then /opt/iaachz-subdominio/aplicar.sh >> /var/log/iaachz-subdominio.log 2>&1 || true; fi"; };

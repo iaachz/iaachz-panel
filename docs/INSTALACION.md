@@ -11,12 +11,12 @@
 | Opcional | [Tailscale](https://tailscale.com) para el módulo de túneles |
 
 Si aún no tienes Hestia, instálalo con su instalador oficial: <https://hestiacp.com/install.html>.
-Hestia Pro no instala Hestia.
+iaachz-panel no instala Hestia.
 
 > **Antes de empezar**, haz una copia de seguridad. Mínimo:
 >
 > ```bash
-> sudo tar czf ~/hestia-antes-de-hestia-pro.tgz /usr/local/hestia/conf /usr/local/hestia/web \
+> sudo tar czf ~/hestia-antes-de-iaachz-panel.tgz /usr/local/hestia/conf /usr/local/hestia/web \
 >   /usr/local/hestia/bin /usr/local/hestia/data/templates /usr/local/hestia/data/users /etc/nginx
 > ```
 
@@ -34,11 +34,11 @@ Para instalar solo una parte: `sudo ./install.sh --only core` (también `subdomi
 
 El instalador:
 
-1. Copia el código a `/opt/hestia-pro`, `/opt/hestia-subdominio`, `/opt/hestia-tunnels` y
-   `/opt/hestia-dns-proveedor`.
+1. Copia el código a `/opt/iaachz-panel`, `/opt/iaachz-subdominio`, `/opt/iaachz-tunnels` y
+   `/opt/iaachz-dns-proveedor`.
 2. Instala los comandos `v-hp` y `v-tunnel` en `/usr/local/hestia/bin`.
-3. Crea las tareas de `cron` (`/etc/cron.d/hestia-pro`) y los servicios `hestia-pro-sampler` y
-   `hestia-pro-firewall`.
+3. Crea las tareas de `cron` (`/etc/cron.d/iaachz-panel`) y los servicios `iaachz-panel-sampler` y
+   `iaachz-panel-firewall`.
 4. Respalda los archivos de Hestia que modifica y registra ganchos en
    `/etc/hestiacp/hooks/post_install.sh` para reaplicarlos tras cada actualización de Hestia.
 
@@ -102,7 +102,7 @@ sudo /usr/local/hestia/bin/v-change-sys-config-value WEBMAIL_ALIAS webmail
 
 ### Apache (opcional)
 
-No hay que instalarlo a mano: Hestia Pro lo instala solo la primera vez que activas *nginx + Apache* en un
+No hay que instalarlo a mano: iaachz-panel lo instala solo la primera vez que activas *nginx + Apache* en un
 dominio, y lo deja escuchando únicamente en `127.0.0.1:7080`.
 
 ## 6. Actualizar
@@ -119,8 +119,8 @@ alguno no encaja con la nueva versión, el instalador lo indica y lo omite sin r
 
 | Síntoma | Qué mirar |
 |---|---|
-| El panel no carga tras instalar | `sudo tail /var/log/hestia/nginx-error.log`; restaura el respaldo de `/opt/hestia-pro/backup/<versión>/`. |
-| Faltan las métricas en vivo | `systemctl status hestia-pro-sampler`. |
+| El panel no carga tras instalar | `sudo tail /var/log/hestia/nginx-error.log`; restaura el respaldo de `/opt/iaachz-panel/backup/<versión>/`. |
+| Faltan las métricas en vivo | `systemctl status iaachz-panel-sampler`. |
 | Un botón (subdominio, DNS) desapareció tras actualizar Hestia | Ejecuta `sudo ./install.sh --only subdominio` o `--only dns-proveedor`. |
 | "el parche no encaja con esta versión de Hestia" | Tu versión de Hestia cambió esa plantilla; el módulo sigue funcionando sin el botón. Abre una incidencia con la versión. |
 | Los túneles no listan destinos | Instala y conecta Tailscale (`tailscale status`). |

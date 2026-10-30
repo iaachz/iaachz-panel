@@ -1,13 +1,13 @@
 #!/bin/bash
-# Hestia Pro — instalador / reaplicador.
+# iaachz-panel — instalador / reaplicador.
 #   install.sh            instala o actualiza desde esta carpeta
 #   install.sh --reapply  vuelve a aplicar los parches tras actualizar Hestia (lo llama el hook post_install)
-# Todo lo propio vive en /opt/hestia-pro; sobre Hestia solo se tocan archivos nuevos y,
-# con marcas "hestia-pro", panel.php y las redirecciones de inicio (se respaldan antes).
+# Todo lo propio vive en /opt/iaachz-panel; sobre Hestia solo se tocan archivos nuevos y,
+# con marcas "iaachz-panel", panel.php y las redirecciones de inicio (se respaldan antes).
 set -euo pipefail
 
 HESTIA=/usr/local/hestia
-PRO=/opt/hestia-pro
+PRO=/opt/iaachz-panel
 SRC="$(cd "$(dirname "$0")" && pwd)"
 WEB=$HESTIA/web
 TPL=$HESTIA/data/templates/web/nginx/php-fpm
@@ -16,7 +16,7 @@ VERSION=$(grep -oP "^VERSION='\K[^']+" $HESTIA/conf/hestia.conf || echo unknown)
 [ "$(id -u)" = 0 ] || { echo "Ejecuta como root"; exit 1; }
 
 if [ "${1:-}" != "--reapply" ]; then
-	echo "== Copiando Hestia Pro a $PRO"
+	echo "== Copiando iaachz-panel a $PRO"
 	mkdir -p $PRO/src $PRO/lib $PRO/runtimes/node $PRO/runtimes/python $PRO/launch $PRO/compose $PRO/bin $PRO/backup
 	chmod 755 $PRO $PRO/runtimes $PRO/runtimes/node $PRO/runtimes/python $PRO/launch $PRO/bin
 	chmod 700 $PRO/compose $PRO/backup $PRO/src
@@ -44,11 +44,11 @@ rm -rf $WEB/pro.new && cp -a $S/web/pro $WEB/pro.new
 rm -rf $WEB/pro && mv $WEB/pro.new $WEB/pro
 find $WEB/pro -type d -exec chmod 755 {} + ; find $WEB/pro -type f -exec chmod 644 {} +
 chown -R root:root $WEB/pro
-install -o root -g root -m 644 $S/web/custom_scripts/hestia-pro.php $WEB/js/custom_scripts/hestia-pro.php
+install -o root -g root -m 644 $S/web/custom_scripts/iaachz-panel.php $WEB/js/custom_scripts/iaachz-panel.php
 
 # panel.php: respaldo del original de esta versión de Hestia y reemplazo por el lateral estilo Plesk
 mkdir -p $PRO/backup/$VERSION
-if ! grep -q "hestia-pro" $WEB/templates/includes/panel.php; then
+if ! grep -q "iaachz-panel" $WEB/templates/includes/panel.php; then
 	cp -a $WEB/templates/includes/panel.php $PRO/backup/$VERSION/panel.php
 fi
 install -o root -g root -m 644 $S/web/panel.php $WEB/templates/includes/panel.php
@@ -57,29 +57,29 @@ install -o root -g root -m 644 $S/web/panel.php $WEB/templates/includes/panel.ph
 patch_home() {
 	local f=$1
 	[ -f "$f" ] || return 0
-	grep -q "hestia-pro" "$f" && return 0
+	grep -q "iaachz-panel" "$f" && return 0
 	[ -f "$PRO/backup/$VERSION/$(echo "${f#$WEB/}" | tr / _)" ] || cp -a "$f" "$PRO/backup/$VERSION/$(echo "${f#$WEB/}" | tr / _)"
-	sed -i 's#"list/user"#"pro" /* hestia-pro */#; s#Location: /list/user/");#Location: /pro/"); // hestia-pro#' "$f"
+	sed -i 's#"list/user"#"pro" /* iaachz-panel */#; s#Location: /list/user/");#Location: /pro/"); // iaachz-panel#' "$f"
 }
 patch_home $WEB/index.php
 patch_home $WEB/list/index.php
 patch_home $WEB/login/index.php
 
 # El filtro CSRF de Hestia solo deja entrar por GET sin "Referer" a ciertas páginas de inicio
-# (marcadores, URL escrita a mano, redirección desde "/"): se suman Inicio y Sitios de Hestia Pro.
+# (marcadores, URL escrita a mano, redirección desde "/"): se suman Inicio y Sitios de iaachz-panel.
 CSRF=$WEB/inc/prevent_csrf.php
-if [ -f $CSRF ] && ! grep -q "hestia-pro" $CSRF; then
+if [ -f $CSRF ] && ! grep -q "iaachz-panel" $CSRF; then
 	cp -a $CSRF "$PRO/backup/$VERSION/inc_prevent_csrf.php"
-	sed -i 's#^\(\s*\)"/list/user/index.php",#\1"/list/user/index.php",\n\1"/pro/index.php", // hestia-pro\n\1"/pro/sites/index.php", // hestia-pro#' $CSRF
+	sed -i 's#^\(\s*\)"/list/user/index.php",#\1"/list/user/index.php",\n\1"/pro/index.php", // iaachz-panel\n\1"/pro/sites/index.php", // iaachz-panel#' $CSRF
 fi
 
 echo "== phpMyAdmin: acceso directo por base de datos"
 PMA=/usr/share/phpmyadmin
 if [ -d $PMA ] && [ -d /etc/phpmyadmin/conf.d ]; then
 	install -o root -g hestiamail -m 640 $S/pma/hp-sso.php $PMA/hp-sso.php
-	install -o root -g hestiamail -m 640 $S/pma/90-hestia-pro-sso.php /etc/phpmyadmin/conf.d/90-hestia-pro-sso.php
-	mkdir -p /var/lib/hestia-pro/pma
-	chown hestiamail:hestiamail /var/lib/hestia-pro/pma && chmod 700 /var/lib/hestia-pro/pma
+	install -o root -g hestiamail -m 640 $S/pma/90-iaachz-panel-sso.php /etc/phpmyadmin/conf.d/90-iaachz-panel-sso.php
+	mkdir -p /var/lib/iaachz-panel/pma
+	chown hestiamail:hestiamail /var/lib/iaachz-panel/pma && chmod 700 /var/lib/iaachz-panel/pma
 fi
 # Hestia programa con "at" la limpieza de usuarios temporales de MySQL y de volcados exportados
 if command -v atd >/dev/null 2>&1 || [ -x /usr/sbin/atd ]; then
@@ -87,22 +87,22 @@ if command -v atd >/dev/null 2>&1 || [ -x /usr/sbin/atd ]; then
 fi
 
 echo "== Datos, tareas cron y hook de actualización"
-mkdir -p $HESTIA/data/hp/jobs /etc/hestia-pro/env /var/lib/hestia-pro/uploads
+mkdir -p $HESTIA/data/hp/jobs /etc/iaachz-panel/env /var/lib/iaachz-panel/uploads
 # subidas de volcados: las escribe el panel (hestiaweb) y v-hp las mueve a una zona solo-root antes de usarlas
-chown root:root /var/lib/hestia-pro && chmod 755 /var/lib/hestia-pro
-chown hestiaweb:hestiaweb /var/lib/hestia-pro/uploads && chmod 700 /var/lib/hestia-pro/uploads
-chmod 700 $HESTIA/data/hp $HESTIA/data/hp/jobs /etc/hestia-pro /etc/hestia-pro/env
-cat > /etc/cron.d/hestia-pro <<'EOF'
-# Hestia Pro: métricas cada minuto y alertas/limpieza cada 5 minutos
+chown root:root /var/lib/iaachz-panel && chmod 755 /var/lib/iaachz-panel
+chown hestiaweb:hestiaweb /var/lib/iaachz-panel/uploads && chmod 700 /var/lib/iaachz-panel/uploads
+chmod 700 $HESTIA/data/hp $HESTIA/data/hp/jobs /etc/iaachz-panel /etc/iaachz-panel/env
+cat > /etc/cron.d/iaachz-panel <<'EOF'
+# iaachz-panel: métricas cada minuto y alertas/limpieza cada 5 minutos
 * * * * * root /usr/local/hestia/bin/v-hp metrics-collect >/dev/null 2>&1
 */5 * * * * root /usr/local/hestia/bin/v-hp alerts-check >/dev/null 2>&1
 EOF
-chmod 644 /etc/cron.d/hestia-pro
+chmod 644 /etc/cron.d/iaachz-panel
 
 # Muestreo continuo cada 2 s para el modo "En vivo" del Monitor (últimos 5 minutos siempre listos)
-cat > /etc/systemd/system/hestia-pro-sampler.service <<'EOF2'
+cat > /etc/systemd/system/iaachz-panel-sampler.service <<'EOF2'
 [Unit]
-Description=Hestia Pro: muestreo de métricas en vivo (cada 2 s)
+Description=iaachz-panel: muestreo de métricas en vivo (cada 2 s)
 After=network.target nginx.service
 
 [Service]
@@ -117,15 +117,15 @@ IOSchedulingClass=idle
 WantedBy=multi-user.target
 EOF2
 systemctl daemon-reload
-systemctl enable hestia-pro-sampler >/dev/null 2>&1 || true
-systemctl restart hestia-pro-sampler || true
+systemctl enable iaachz-panel-sampler >/dev/null 2>&1 || true
+systemctl restart iaachz-panel-sampler || true
 
 # Acceso por país e IP: base de países, listas por país y reglas propias de iptables (HP_GEO / HP_ADMIN)
-mkdir -p /var/lib/hestia-pro/geo
-chmod 755 /var/lib/hestia-pro/geo
-cat > /etc/systemd/system/hestia-pro-firewall.service <<'EOF3'
+mkdir -p /var/lib/iaachz-panel/geo
+chmod 755 /var/lib/iaachz-panel/geo
+cat > /etc/systemd/system/iaachz-panel-firewall.service <<'EOF3'
 [Unit]
-Description=Hestia Pro: bloqueos por país/IP y lista blanca de administración
+Description=iaachz-panel: bloqueos por país/IP y lista blanca de administración
 After=network-online.target docker.service tailscaled.service
 Wants=network-online.target
 
@@ -138,13 +138,13 @@ ExecStart=/usr/bin/python3 -I /usr/local/hestia/bin/v-hp fw-boot
 WantedBy=multi-user.target
 EOF3
 systemctl daemon-reload
-systemctl enable hestia-pro-firewall >/dev/null 2>&1 || true
-grep -q "geo-update-cron" /etc/cron.d/hestia-pro || echo '17 4 4 * * root /usr/local/hestia/bin/v-hp geo-update-cron >/dev/null 2>&1' >> /etc/cron.d/hestia-pro
+systemctl enable iaachz-panel-firewall >/dev/null 2>&1 || true
+grep -q "geo-update-cron" /etc/cron.d/iaachz-panel || echo '17 4 4 * * root /usr/local/hestia/bin/v-hp geo-update-cron >/dev/null 2>&1' >> /etc/cron.d/iaachz-panel
 # Si se activa el cortafuegos de Hestia, este vacía INPUT: su gancho custom.sh vuelve a poner nuestras reglas
 FWD=$HESTIA/data/firewall
-if [ -d $FWD ] && [ -n "$(ls -A $FWD 2>/dev/null)" ] && ! grep -qs "hestia-pro" $FWD/custom.sh; then
+if [ -d $FWD ] && [ -n "$(ls -A $FWD 2>/dev/null)" ] && ! grep -qs "iaachz-panel" $FWD/custom.sh; then
 	[ -f $FWD/custom.sh ] || printf '#!/bin/bash\n' > $FWD/custom.sh
-	echo '/usr/local/hestia/bin/v-hp fw-boot >/dev/null 2>&1  # hestia-pro' >> $FWD/custom.sh
+	echo '/usr/local/hestia/bin/v-hp fw-boot >/dev/null 2>&1  # iaachz-panel' >> $FWD/custom.sh
 	chmod 755 $FWD/custom.sh
 fi
 
@@ -153,12 +153,12 @@ HOOK=/etc/hestiacp/hooks/post_install.sh
 if [ ! -f $HOOK ]; then
 	printf '#!/bin/bash\n' > $HOOK
 fi
-if ! grep -q "hestia-pro" $HOOK; then
-	echo '[ -x /opt/hestia-pro/src/install.sh ] && /opt/hestia-pro/src/install.sh --reapply  # hestia-pro' >> $HOOK
+if ! grep -q "iaachz-panel" $HOOK; then
+	echo '[ -x /opt/iaachz-panel/src/install.sh ] && /opt/iaachz-panel/src/install.sh --reapply  # iaachz-panel' >> $HOOK
 fi
 chmod 755 $HOOK
 chmod 700 $PRO/src/install.sh 2>/dev/null || true
 
 /usr/local/hestia/bin/v-hp metrics-collect >/dev/null 2>&1 || true
 /usr/local/hestia/bin/v-hp traffic-backfill >/dev/null 2>&1 || true  # visitantes por dominio (solo la primera vez)
-echo "== Hestia Pro instalado (Hestia $VERSION)"
+echo "== iaachz-panel instalado (Hestia $VERSION)"

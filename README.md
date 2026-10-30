@@ -3,8 +3,8 @@
 Una capa estilo **Plesk** para [Hestia Control Panel](https://hestiacp.com). Se instala junto a Hestia sin
 reemplazar su motor: usa sus comandos `v-*` y añade los que faltaban.
 
-> El módulo principal se llama internamente *Hestia Pro* (comando `v-hp`, carpeta `/opt/hestia-pro`); esos
-> nombres se conservan para no romper instalaciones existentes.
+> Prefijo interno: el comando del módulo principal es `v-hp` y sus datos están en `data/hp`; `hp` es solo
+> una abreviatura corta usada en el código.
 
 > **Estado:** probado con Hestia **1.10.5** en **Ubuntu 26.04** y **Debian 13**. Los módulos se aplican y se
 > reaplican sobre servidores en uso; la instalación desde cero en una máquina limpia con `install.sh` todavía
@@ -40,8 +40,8 @@ en un VPS público y en un servidor privado. Ver [`docs/AJUSTES.md`](docs/AJUSTE
 
 ## Qué toca en Hestia
 
-Todo lo demás son archivos nuevos. Los archivos de Hestia que se modifican llevan marcas (`hestia-pro`,
-`hestia-custom`, `subdominio-btn`, `tunnel-btn`), se respaldan antes y se reaplican cuando Hestia se actualiza:
+Todo lo demás son archivos nuevos. Los archivos de Hestia que se modifican llevan marcas (`iaachz-panel`,
+`iaachz-custom`, `subdominio-btn`, `tunnel-btn`), se respaldan antes y se reaplican cuando Hestia se actualiza:
 
 `web/templates/includes/panel.php`, `web/index.php`, `web/list/index.php`, `web/login/index.php`,
 `web/inc/prevent_csrf.php`, `web/templates/pages/list_web.php`, `web/templates/pages/list_dns_rec.php`
@@ -50,10 +50,10 @@ y `bin/v-delete-user`.
 ## Desinstalar
 
 - Núcleo: ver la sección *Desinstalar* de [`core/README.md`](core/README.md).
-- Subdominios: `sudo /opt/hestia-subdominio/aplicar.sh --quitar`
-- DNS del proveedor: `sudo /opt/hestia-dns-proveedor/install.sh --quitar`
+- Subdominios: `sudo /opt/iaachz-subdominio/aplicar.sh --quitar`
+- DNS del proveedor: `sudo /opt/iaachz-dns-proveedor/install.sh --quitar`
 - Túneles: no hay desinstalador automático; cada instalación guarda sus respaldos en
-  `/opt/hestia-tunnels/backups/`. Elimina antes los túneles desde el panel.
+  `/opt/iaachz-tunnels/backups/`. Elimina antes los túneles desde el panel.
 
 ## Limitaciones
 

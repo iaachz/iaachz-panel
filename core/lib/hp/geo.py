@@ -25,7 +25,7 @@ from . import jobs
 from .common import (DATA, HESTIA, HPError, check_web_domain, ensure_dir, hestia_conf, home_of, list_users, load_json,
                      locked, log_action, notify, now, run, save_json, web_domains, which)
 
-GEO = "/var/lib/hestia-pro/geo"
+GEO = "/var/lib/iaachz-panel/geo"
 MMDB = GEO + "/country.mmdb"
 CIDR = GEO + "/cidr"
 NGX = GEO + "/nginx"
@@ -286,7 +286,7 @@ def update_db():
         tmp = MMDB + ".new"
         try:
             _step(f"Descargando la base de países de {ym} (DB-IP Lite)", "running")
-            req = urllib.request.Request(url, headers={"User-Agent": "hestia-pro"})
+            req = urllib.request.Request(url, headers={"User-Agent": "iaachz-panel"})
             with urllib.request.urlopen(req, timeout=180) as r, open(tmp + ".gz", "wb") as fh:
                 shutil.copyfileobj(r, fh)
             with gzip.open(tmp + ".gz") as g, open(tmp, "wb") as fh:
@@ -416,7 +416,7 @@ def _owners():
 
 def _snippet(domain, s):
     h = _h(domain)
-    lines = ["# hestia-pro: acceso por país e IP (generado; se cambia en Seguridad > Acceso por país)",
+    lines = ["# iaachz-panel: acceso por país e IP (generado; se cambia en Seguridad > Acceso por país)",
              "set $hp_geo_block 0;"]
     ccs = "|".join(s.get("countries") or [])
     if s.get("mode") == "allow":
@@ -454,7 +454,7 @@ def apply_nginx(rules=None):
     need = sorted({c for s in sites.values() if s.get("mode") in ("allow", "deny") for c in s.get("countries") or []})
     if need:
         build_cidr()
-    conf = ["# hestia-pro: países e IPs por dominio (generado por v-hp; no editar)"]
+    conf = ["# iaachz-panel: países e IPs por dominio (generado por v-hp; no editar)"]
     if sites:
         conf += ["geo $hp_cc {", "\tdefault --;"]
         conf += [f"\t{n} LO;" for n in LOCAL4 + LOCAL6 + server_ips()]
@@ -660,7 +660,7 @@ def apply_all():
 
 
 def boot():
-    """Al arrancar el servidor (servicio hestia-pro-firewall): vuelve a cargar los conjuntos y las cadenas."""
+    """Al arrancar el servidor (servicio iaachz-panel-firewall): vuelve a cargar los conjuntos y las cadenas."""
     rules = load_rules()
     if rules["admin"].get("enabled") or rules["server"].get("countries") or rules["server"].get("ips"):
         fw_apply(rules)
@@ -840,7 +840,7 @@ def firewall_set(data, client):
             save_json(RULES, r)
             fw_apply(r)
             raise
-    log_action("admin", "Cortafuegos de Hestia Pro: lista blanca " + ("activa" if adm["enabled"] else "inactiva") +
+    log_action("admin", "Cortafuegos de iaachz-panel: lista blanca " + ("activa" if adm["enabled"] else "inactiva") +
                f", {len(srv['countries'])} países y {len(srv['ips'])} IPs bloqueados", "Info", "Firewall")
     return view()
 
@@ -864,7 +864,7 @@ def rollback():
         r["pending"] = None
         save_json(RULES, r)
         fw_apply(r)
-    log_action("admin", "Cortafuegos de Hestia Pro: cambio sin confirmar, se volvió a la configuración anterior", "Warning", "Firewall")
+    log_action("admin", "Cortafuegos de iaachz-panel: cambio sin confirmar, se volvió a la configuración anterior", "Warning", "Firewall")
     notify("admin", "Cortafuegos: cambio deshecho", "No se confirmó el cambio de acceso en 3 minutos y se volvió a la configuración anterior.")
     return {"ok": True, "rolled_back": True}
 

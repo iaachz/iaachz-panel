@@ -1,5 +1,5 @@
 <?php
-// hestia-pro: carga la apariencia y utilidades de Hestia Pro en todas las páginas del panel.
+// iaachz-panel: carga la apariencia y utilidades de iaachz-panel en todas las páginas del panel.
 // Hestia incluye automáticamente los .php de js/custom_scripts dentro de <head> (sobrevive a actualizaciones).
 $hp_asset_v = @filemtime($_SERVER["HESTIA"] . "/web/pro/assets/pro.css") ?: 1;
 $hp_theme = !empty($_SESSION["userTheme"]) ? $_SESSION["userTheme"] : ($_SESSION["THEME"] ?? "default");

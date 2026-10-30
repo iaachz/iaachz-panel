@@ -1,5 +1,5 @@
 <?php
-// Hestia Pro: webhook de despliegue Git (GitHub, GitLab, Gitea, Bitbucket…).
+// iaachz-panel: webhook de despliegue Git (GitHub, GitLab, Gitea, Bitbucket…).
 // No usa sesión: lo autoriza el secreto propio de cada dominio, que valida `v-hp git-webhook`.
 header("Content-Type: application/json; charset=utf-8");
 

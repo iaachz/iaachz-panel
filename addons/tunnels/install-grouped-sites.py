@@ -1,5 +1,5 @@
 import pathlib,datetime,shutil,subprocess
-base=pathlib.Path('/opt/hestia-tunnels');web=pathlib.Path('/usr/local/hestia/web/pro/pages');src=pathlib.Path('/opt/hestia-pro/src/web/pro/pages')
+base=pathlib.Path('/opt/iaachz-tunnels');web=pathlib.Path('/usr/local/hestia/web/pro/pages');src=pathlib.Path('/opt/iaachz-panel/src/web/pro/pages')
 backup=base/'backups'/('domain-groups-'+datetime.datetime.now().strftime('%Y%m%d-%H%M%S'));backup.mkdir(parents=True,mode=0o700)
 page=web/'sites.php';old=page.read_text();shutil.copy2(page,backup/'sites.php')
 partial=web/'sites-hosting-row.php'

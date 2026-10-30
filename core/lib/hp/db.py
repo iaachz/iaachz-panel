@@ -22,7 +22,7 @@ from .common import (DATA, USERS_DIR, HPError, check_user, ensure_dir, hestia, h
                      run)
 from .jobs import step
 
-UPLOADS = "/var/lib/hestia-pro/uploads"  # escribe el panel (hestiaweb); v-hp mueve el archivo antes de usarlo
+UPLOADS = "/var/lib/iaachz-panel/uploads"  # escribe el panel (hestiaweb); v-hp mueve el archivo antes de usarlo
 STAGE = DATA + "/imports"
 RE_UPLOAD = re.compile(r"^[a-f0-9]{16,64}$")
 RE_DEFINER = re.compile(rb"(/\*!50013 )?DEFINER\s*=\s*(`[^`]*`|'[^']*'|\w+)@(`[^`]*`|'[^']*'|[\w.%-]+)(\s+SQL SECURITY DEFINER)?( \*/)?", re.I)
@@ -236,7 +236,7 @@ def import_dump(user, db, source, wipe="no"):
         if owned and os.path.exists(path):
             os.remove(path)
     hestia("v-update-database-disk", user, db, check=False)
-    log_action(user, f"Hestia Pro: volcado importado en la base de datos {db}", category="Databases")
+    log_action(user, f"iaachz-panel: volcado importado en la base de datos {db}", category="Databases")
     return {"ok": True, "database": db}
 
 

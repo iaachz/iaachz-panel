@@ -331,7 +331,7 @@ def recent_avg(field, minutes=5):
 
 
 def services():
-    """Estado de servicios de Hestia (v-list-sys-services) más los de Hestia Pro."""
+    """Estado de servicios de Hestia (v-list-sys-services) más los de iaachz-panel."""
     from .common import hestia_json
     data = hestia_json("v-list-sys-services")
     for name in ("docker", "apache2"):

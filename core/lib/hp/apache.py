@@ -17,12 +17,12 @@ from .jobs import step
 
 PORT = 7080
 TPL = "hp-apache"
-SITES = "/etc/apache2/hestia-pro"
+SITES = "/etc/apache2/iaachz-panel"
 LOGS = "/var/log/apache2/domains"
 STATIC_EXT = "css,js,map,jpg,jpeg,png,gif,webp,avif,svg,ico,bmp,woff,woff2,ttf,otf,eot,mp4,webm,ogg,mp3,wav,pdf,zip,gz,rar,7z,txt,xml,csv"
 RE_EXT = re.compile(r"^[a-z0-9]{1,8}$")
 
-MAIN_CONF = f"""# Hestia Pro: Apache detrás de nginx (generado por v-hp, no editar)
+MAIN_CONF = f"""# iaachz-panel: Apache detrás de nginx (generado por v-hp, no editar)
 Listen 127.0.0.1:{PORT}
 ServerTokens Prod
 ServerSignature Off
@@ -49,7 +49,7 @@ def load(user):
 
 
 def installed():
-    return os.path.exists("/usr/sbin/apache2") and os.path.exists("/etc/apache2/conf-available/hestia-pro.conf")
+    return os.path.exists("/usr/sbin/apache2") and os.path.exists("/etc/apache2/conf-available/iaachz-panel.conf")
 
 
 def status():
@@ -76,17 +76,17 @@ def install():
     step("Configurando Apache en 127.0.0.1:%d" % PORT, "running")
     # Ubuntu trae Listen 80/443: nginx ya los usa, así que Apache solo escucha en local
     with open("/etc/apache2/ports.conf", "w") as fh:
-        fh.write("# Hestia Pro: Apache solo escucha en 127.0.0.1 (ver conf-available/hestia-pro.conf)\n")
+        fh.write("# iaachz-panel: Apache solo escucha en 127.0.0.1 (ver conf-available/iaachz-panel.conf)\n")
     os.makedirs(SITES, mode=0o755, exist_ok=True)
     os.makedirs(LOGS, mode=0o750, exist_ok=True)
-    with open("/etc/apache2/conf-available/hestia-pro.conf", "w") as fh:
+    with open("/etc/apache2/conf-available/iaachz-panel.conf", "w") as fh:
         fh.write(MAIN_CONF)
     for mod in ("php8.3", "php8.4", "php8.5", "mpm_prefork"):
         run(["a2dismod", "-q", mod], timeout=30)
     for mod in ("mpm_event", "proxy", "proxy_fcgi", "setenvif", "rewrite", "headers", "remoteip", "expires", "deflate", "alias"):
         run(["a2enmod", "-q", mod], timeout=30)
     run(["a2dissite", "-q", "000-default"], timeout=30)
-    run(["a2enconf", "-q", "hestia-pro"], timeout=30)
+    run(["a2enconf", "-q", "iaachz-panel"], timeout=30)
     _test_and_reload(restart=True)
     run(["systemctl", "enable", "apache2"], timeout=60)
     step("Apache listo (solo accesible desde nginx)")
@@ -120,7 +120,7 @@ def _vhost(user, domain, web):
     sock = _php_socket(domain)
     php = (f'\t<FilesMatch "\\.(php|phtml)$">\n\t\tSetHandler "proxy:unix:{sock}|fcgi://localhost"\n\t</FilesMatch>\n'
            if sock else "\t# este dominio no tiene PHP\n")
-    text = f"""# Hestia Pro: {domain} ({user}) — generado por v-hp, no editar
+    text = f"""# iaachz-panel: {domain} ({user}) — generado por v-hp, no editar
 <VirtualHost 127.0.0.1:{PORT}>
 	ServerName {domain}
 	{('ServerAlias ' + aliases) if aliases else ''}
@@ -166,7 +166,7 @@ def _nginx_conf(user, domain, cfg):
 \t\t\taccess_log off;
 \t\t}}
 """
-    text = f"""# Hestia Pro: nginx + Apache para {domain} — generado por v-hp, no editar
+    text = f"""# iaachz-panel: nginx + Apache para {domain} — generado por v-hp, no editar
 \tlocation / {{
 \t\tproxy_pass {up};
 {headers}
@@ -233,7 +233,7 @@ def enable(user, domain, static=True, ext=None):
         hestia("v-change-web-domain-tpl", user, domain, TPL, "yes")
     else:
         hestia("v-restart-web", check=False)
-    log_action(user, f"Hestia Pro: {domain} ahora usa nginx + Apache (.htaccess)")
+    log_action(user, f"iaachz-panel: {domain} ahora usa nginx + Apache (.htaccess)")
     step("Listo: nginx " + ("sirve los estáticos y " if static else "") + "pasa el resto a Apache")
     return get(user, domain)
 
@@ -250,7 +250,7 @@ def disable(user, domain, restore_tpl=True):
     _teardown(user, domain)
     if restore_tpl:
         hestia("v-change-web-domain-tpl", user, domain, cfg.get("prev_tpl") or "default", "yes", check=False)
-    log_action(user, f"Hestia Pro: {domain} vuelve a usar solo nginx")
+    log_action(user, f"iaachz-panel: {domain} vuelve a usar solo nginx")
     return get(user, domain)
 
 

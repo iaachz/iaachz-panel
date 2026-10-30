@@ -1,6 +1,6 @@
 <?php
-// hestia-pro: navegación lateral estilo Plesk (reemplaza templates/includes/panel.php).
-// El original de cada versión de Hestia queda respaldado en /opt/hestia-pro/backup/<versión>/.
+// iaachz-panel: navegación lateral estilo Plesk (reemplaza templates/includes/panel.php).
+// El original de cada versión de Hestia queda respaldado en /opt/iaachz-panel/backup/<versión>/.
 $hp_is_admin = $_SESSION["userContext"] === "admin" && $_SESSION["look"] === "";
 $hp_looking = $_SESSION["look"] !== "";
 $hp_nav = $GLOBALS["HP_NAV"] ?? "";

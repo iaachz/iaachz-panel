@@ -1,11 +1,11 @@
 <?php
-// Hestia Pro: subida de volcados por partes (8 MB cada una), así no aplica el límite de subida de PHP.
-// Las partes se guardan en /var/lib/hestia-pro/uploads (solo hestiaweb); `v-hp db-import` mueve el archivo
+// iaachz-panel: subida de volcados por partes (8 MB cada una), así no aplica el límite de subida de PHP.
+// Las partes se guardan en /var/lib/iaachz-panel/uploads (solo hestiaweb); `v-hp db-import` mueve el archivo
 // a una zona solo-root antes de leerlo.
 include __DIR__ . "/../inc/pro.php";
 
 header("Content-Type: application/json; charset=utf-8");
-const HP_UPLOADS = "/var/lib/hestia-pro/uploads";
+const HP_UPLOADS = "/var/lib/iaachz-panel/uploads";
 const HP_MAX_UPLOAD = 8 * 1024 * 1024 * 1024; // 8 GB
 
 function hp_up_fail(string $msg, int $code = 400): void {

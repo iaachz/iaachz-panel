@@ -1,5 +1,5 @@
 <?php
-// Hestia Pro: descarga un volcado .sql.gz (usa v-dump-database de Hestia, que borra la copia en 1 hora).
+// iaachz-panel: descarga un volcado .sql.gz (usa v-dump-database de Hestia, que borra la copia en 1 hora).
 include __DIR__ . "/../inc/pro.php";
 
 verify_csrf($_GET);

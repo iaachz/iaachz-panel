@@ -1,5 +1,5 @@
 <?php
-// hestia-custom: convierte los registros de una zona de Hestia en filas listas
+// iaachz-custom: convierte los registros de una zona de Hestia en filas listas
 // para copiar en el panel del proveedor del dominio y en un archivo de zona BIND.
 
 function dnsp_quitar_punto($v) {

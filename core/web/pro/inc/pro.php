@@ -1,5 +1,5 @@
 <?php
-// Hestia Pro: utilidades comunes de las páginas /pro (sesión, permisos, llamadas a v-hp).
+// iaachz-panel: utilidades comunes de las páginas /pro (sesión, permisos, llamadas a v-hp).
 use function Hestiacp\quoteshellarg\quoteshellarg;
 
 include $_SERVER["DOCUMENT_ROOT"] . "/inc/main.php";

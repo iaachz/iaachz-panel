@@ -1,6 +1,6 @@
 """Muestreo continuo para el modo "En vivo" del Monitor.
 
-Un servicio (hestia-pro-sampler) toma una muestra cada 2 s y guarda las últimas 5 minutos en
+Un servicio (iaachz-panel-sampler) toma una muestra cada 2 s y guarda las últimas 5 minutos en
 /usr/local/hestia/data/hp/live.json. Así, al abrir o refrescar el Monitor, los gráficos en vivo
 aparecen ya con los últimos 5 minutos y `metrics-live` responde sin tener que esperar a medir.
 """
@@ -63,7 +63,7 @@ def loop():
             del points[:-KEEP]
             _write(points)
         except Exception as e:  # una muestra fallida no debe parar el servicio
-            print("hestia-pro-sampler:", e, flush=True)
+            print("iaachz-panel-sampler:", e, flush=True)
         prev = cur
 
 

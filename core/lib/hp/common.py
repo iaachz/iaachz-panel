@@ -1,4 +1,4 @@
-"""Utilidades compartidas de Hestia Pro (corre como root vía sudo desde el panel)."""
+"""Utilidades compartidas de iaachz-panel (corre como root vía sudo desde el panel)."""
 
 import base64
 import fcntl
@@ -15,8 +15,8 @@ from contextlib import contextmanager
 HESTIA = "/usr/local/hestia"
 BIN = HESTIA + "/bin"
 USERS_DIR = HESTIA + "/data/users"
-DATA = HESTIA + "/data/hp"  # estado global de Hestia Pro (root:root 700)
-PRO = "/opt/hestia-pro"
+DATA = HESTIA + "/data/hp"  # estado global de iaachz-panel (root:root 700)
+PRO = "/opt/iaachz-panel"
 RUNTIMES = PRO + "/runtimes"
 TPL_DIR = HESTIA + "/data/templates/web/nginx/php-fpm"
 APP_TPL = "hp-app"

@@ -1,9 +1,9 @@
 <?php
-// Hestia Pro: entrada directa a phpMyAdmin con un ticket de un solo uso emitido por el panel.
+// iaachz-panel: entrada directa a phpMyAdmin con un ticket de un solo uso emitido por el panel.
 // Lo instala install.sh en /usr/share/phpmyadmin/hp-sso.php (root:hestiamail 640).
 declare(strict_types=1);
 
-const HP_TICKETS = "/var/lib/hestia-pro/pma";
+const HP_TICKETS = "/var/lib/iaachz-panel/pma";
 const HP_SESSION = "HPSignonSession";
 
 session_name(HP_SESSION);

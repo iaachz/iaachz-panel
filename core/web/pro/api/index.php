@@ -1,5 +1,5 @@
 <?php
-// Hestia Pro: API JSON para las pantallas (POST con token CSRF de la sesión).
+// iaachz-panel: API JSON para las pantallas (POST con token CSRF de la sesión).
 // Permisos: el administrador actúa sobre cualquier usuario (campo "user"); el resto, solo sobre sí mismo.
 include __DIR__ . "/../inc/pro.php";
 
@@ -251,7 +251,7 @@ switch ($a) {
 		$src = (string) ($in["source"] ?? "");
 		if (str_starts_with($src, "upload:")) {
 			$id = substr($src, 7);
-			$meta = preg_match('/^[a-f0-9]{32}$/', $id) ? json_decode((string) @file_get_contents("/var/lib/hestia-pro/uploads/$id.json"), true) : null;
+			$meta = preg_match('/^[a-f0-9]{32}$/', $id) ? json_decode((string) @file_get_contents("/var/lib/iaachz-panel/uploads/$id.json"), true) : null;
 			if (!$meta || $meta["owner"] !== $_SESSION["user"] || $meta["received"] !== $meta["size"]) {
 				hp_bad("La subida no está completa o no es tuya");
 			}

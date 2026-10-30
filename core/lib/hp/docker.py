@@ -47,8 +47,8 @@ def containers():
         c["MemPerc"] = s.get("MemPerc", "")
         c["NetIO"] = s.get("NetIO", "")
         labels = c.get("Labels", "")
-        c["hp_domain"] = (re.search(r"hestia-pro\.domain=([^,]+)", labels) or [None, None])[1]
-        c["hp_user"] = (re.search(r"hestia-pro\.user=([^,]+)", labels) or [None, None])[1]
+        c["hp_domain"] = (re.search(r"iaachz-panel\.domain=([^,]+)", labels) or [None, None])[1]
+        c["hp_user"] = (re.search(r"iaachz-panel\.user=([^,]+)", labels) or [None, None])[1]
         c["compose"] = (re.search(r"com\.docker\.compose\.project=([^,]+)", labels) or [None, None])[1]
     return items
 

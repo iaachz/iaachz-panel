@@ -44,7 +44,7 @@ fi
 command -v python3 >/dev/null && ok "python3" || fail "falta python3"
 [ -x $HESTIA/php/bin/php ] && ok "PHP de Hestia" || fail "falta $HESTIA/php/bin/php"
 command -v patch >/dev/null && ok "patch" || fail "falta patch (apt install patch)"
-command -v nginx >/dev/null && ok "nginx" || fail "Hestia Pro necesita Hestia con nginx"
+command -v nginx >/dev/null && ok "nginx" || fail "iaachz-panel necesita Hestia con nginx"
 command -v tailscale >/dev/null && ok "tailscale (túneles VPN)" || warn "tailscale no está instalado: el módulo de túneles no tendrá destinos VPN"
 systemctl is-active --quiet hestia && ok "servicio hestia activo" || warn "el servicio hestia no está activo"
 
@@ -55,28 +55,28 @@ fi
 [ "$CHECK" = 1 ] && { echo "Requisitos correctos."; exit 0; }
 
 if quiere core; then
-	echo "== Núcleo (Hestia Pro)"
+	echo "== Núcleo (iaachz-panel)"
 	bash "$REPO/core/install.sh"
 fi
 
 if quiere subdominio; then
 	echo "== Subdominios"
-	mkdir -p /opt/hestia-subdominio
-	cp -a "$REPO/addons/subdominio/." /opt/hestia-subdominio/
-	chmod 755 /opt/hestia-subdominio/aplicar.sh
-	install -m 644 /opt/hestia-subdominio/99hestia-subdominio /etc/apt/apt.conf.d/99hestia-subdominio
-	/opt/hestia-subdominio/aplicar.sh
+	mkdir -p /opt/iaachz-subdominio
+	cp -a "$REPO/addons/subdominio/." /opt/iaachz-subdominio/
+	chmod 755 /opt/iaachz-subdominio/aplicar.sh
+	install -m 644 /opt/iaachz-subdominio/99iaachz-subdominio /etc/apt/apt.conf.d/99iaachz-subdominio
+	/opt/iaachz-subdominio/aplicar.sh
 fi
 
 if quiere tunnels; then
 	echo "== Túneles VPN y vista agrupada de dominios"
 	[ -f $HESTIA/web/add/subdomain/index.php ] || { echo "Los túneles necesitan el módulo 'subdominio' (instálalo antes)."; exit 1; }
 	[ -d $HESTIA/web/pro ] || { echo "Los túneles necesitan el módulo 'core' (instálalo antes)."; exit 1; }
-	mkdir -p /opt/hestia-tunnels /etc/hestia-tunnels
-	cp -a "$REPO/addons/tunnels/." /opt/hestia-tunnels/
+	mkdir -p /opt/iaachz-tunnels /etc/iaachz-tunnels
+	cp -a "$REPO/addons/tunnels/." /opt/iaachz-tunnels/
 	install -o root -g root -m 755 "$REPO/bin/v-tunnel" $HESTIA/bin/v-tunnel
-	/usr/bin/python3 /opt/hestia-tunnels/install.py
-	/usr/bin/python3 /opt/hestia-tunnels/install-grouped-sites.py
+	/usr/bin/python3 /opt/iaachz-tunnels/install.py
+	/usr/bin/python3 /opt/iaachz-tunnels/install-grouped-sites.py
 fi
 
 if quiere dns-proveedor; then

@@ -1,5 +1,5 @@
 <?php
-// Agregar subdominio (personalizacion; se reaplica con /opt/hestia-subdominio/aplicar.sh)
+// Agregar subdominio (personalizacion; se reaplica con /opt/iaachz-subdominio/aplicar.sh)
 use function Hestiacp\quoteshellarg\quoteshellarg;
 
 ob_start();

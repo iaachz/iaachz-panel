@@ -1,5 +1,5 @@
 #=========================================================================#
-# Hestia Pro: nginx + Apache (modo proxy, como Plesk)                    #
+# iaachz-panel: nginx + Apache (modo proxy, como Plesk)                    #
 # nginx sirve los estáticos y pasa el resto a Apache (127.0.0.1:7080); reglas en hp-apache.conf
 # que gestiona `v-hp apache-*`. No edites este archivo.                     #
 #=========================================================================#

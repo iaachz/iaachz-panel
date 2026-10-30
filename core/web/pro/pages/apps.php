@@ -16,7 +16,7 @@ hp_page_header("Aplicaciones", "Node.js, Python, contenedores Docker y proxys pu
 				<div class="hp-empty">
 					<i class="fas fa-cubes hp-empty-icon"></i>
 					<h3>Todavía no hay aplicaciones</h3>
-					<p>Publica una app Node.js, Python o un contenedor Docker en cualquier dominio. Hestia Pro crea el servicio, el proxy nginx y el SSL.</p>
+					<p>Publica una app Node.js, Python o un contenedor Docker en cualquier dominio. iaachz-panel crea el servicio, el proxy nginx y el SSL.</p>
 					<button type="button" class="hp-btn hp-btn-primary" x-on:click="go('new')"><i class="fas fa-plus"></i>Añadir aplicación</button>
 				</div>
 			<?php } else { ?>
@@ -142,7 +142,7 @@ hp_page_header("Aplicaciones", "Node.js, Python, contenedores Docker y proxys pu
 				</div>
 			</div>
 		</template>
-		<p class="hp-muted hp-small hp-mt">Las versiones se descargan de nodejs.org y python-build-standalone verificando su firma SHA256, y se instalan en <code>/opt/hestia-pro/runtimes</code> sin tocar los paquetes del sistema.</p>
+		<p class="hp-muted hp-small hp-mt">Las versiones se descargan de nodejs.org y python-build-standalone verificando su firma SHA256, y se instalan en <code>/opt/iaachz-panel/runtimes</code> sin tocar los paquetes del sistema.</p>
 	</div>
 </div>
 

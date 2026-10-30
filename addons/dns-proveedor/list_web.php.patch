@@ -4,7 +4,7 @@
  								</a>
  							</li>
  						<?php } ?>
-+						<?php /* hestia-custom:web-dns */ if (!preg_match("/-p([0-9]+)$/", $data[$key]["TPL"] ?? "")) { ?>
++						<?php /* iaachz-custom:web-dns */ if (!preg_match("/-p([0-9]+)$/", $data[$key]["TPL"] ?? "")) { ?>
  						<li class="units-table-row-action" data-key-action="href">
  							<a
  								class="units-table-row-action-link"
@@ -20,7 +20,7 @@
 +<li class="units-table-row-action" data-key-action="href">
 +							<a
 +								class="units-table-row-action-link"
-+								href="<?php /* hestia-custom:visit-port */ echo tohtml(preg_match("/-p([0-9]+)$/", $data[$key]["TPL"] ?? "", $m) ? "http://" . $data[$key]["IP"] . ":" . $m[1] . "/" : "http://" . $key . "/"); ?>"
++								href="<?php /* iaachz-custom:visit-port */ echo tohtml(preg_match("/-p([0-9]+)$/", $data[$key]["TPL"] ?? "", $m) ? "http://" . $data[$key]["IP"] . ":" . $m[1] . "/" : "http://" . $key . "/"); ?>"
  								target="_blank"
  								rel="noopener"
  								title="<?= tohtml( _("Visit")) ?>"

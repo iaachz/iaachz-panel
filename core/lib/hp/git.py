@@ -37,7 +37,7 @@ def deploy_key(user):
     if not os.path.exists(key):
         run(["mkdir", "-p", os.path.dirname(key)], user=user, check=True)
         run(["chmod", "700", os.path.dirname(key)], user=user)
-        run(["ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-C", f"hestia-pro-{user}", "-f", key], user=user, check=True)
+        run(["ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-C", f"iaachz-panel-{user}", "-f", key], user=user, check=True)
     with open(key + ".pub") as fh:
         return {"public_key": fh.read().strip()}
 
@@ -83,7 +83,7 @@ def save(user, domain, cfg):
                         "restart_app": cfg.get("restart_app", True) is not False,
                         "last_deploy": old.get("last_deploy"), "last_status": old.get("last_status")}
         save_json(_path(user), data, 0o660)
-    log_action(user, f"Hestia Pro: repositorio Git configurado en {domain}")
+    log_action(user, f"iaachz-panel: repositorio Git configurado en {domain}")
     return data[domain]
 
 
@@ -142,7 +142,7 @@ def deploy(user, domain):
             app = apps.load_apps(user).get(domain, {})
             path = "/usr/local/bin:/usr/bin:/bin"
             if app.get("type") == "node":
-                path = f"/opt/hestia-pro/runtimes/node/{app['version']}/bin:" + path
+                path = f"/opt/iaachz-panel/runtimes/node/{app['version']}/bin:" + path
             env = dict(_git_env(user), PATH=path)
             p = subprocess.run([RUNUSER, "-u", user, "--", "/bin/bash", "-e", "-c", cfg["post_deploy"]],
                                cwd=target, env=env, text=True, stdout=None, stderr=subprocess.STDOUT, timeout=3600)
@@ -163,7 +163,7 @@ def deploy(user, domain):
                 data[domain]["last_deploy"] = now()
                 data[domain]["last_status"] = "ok" if ok else ("error: " + (err or ""))[:300]
                 save_json(_path(user), data, 0o660)
-        log_action(user, f"Hestia Pro: despliegue Git de {domain} " + ("correcto" if ok else "fallido"),
+        log_action(user, f"iaachz-panel: despliegue Git de {domain} " + ("correcto" if ok else "fallido"),
                    "Info" if ok else "Error")
     return {"ok": True}
 

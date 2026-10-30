@@ -1,5 +1,5 @@
 <?php
-// Hestia Pro: abre phpMyAdmin ya autenticado y limitado a una base de datos (ticket de un solo uso).
+// iaachz-panel: abre phpMyAdmin ya autenticado y limitado a una base de datos (ticket de un solo uso).
 // El ticket se ata al navegador con una cookie (no a la IP: muchos proveedores reparten la salida
 // a internet entre varias IP y el panel y phpMyAdmin verían direcciones distintas).
 include __DIR__ . "/../inc/pro.php";

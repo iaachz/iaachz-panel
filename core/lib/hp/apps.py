@@ -23,7 +23,7 @@ from .jobs import step
 
 TYPES = ("node", "python", "docker", "proxy")
 UNIT_DIR = "/etc/systemd/system"
-ENV_DIR = "/etc/hestia-pro/env"
+ENV_DIR = "/etc/iaachz-panel/env"
 LAUNCH_DIR = PRO + "/launch"
 RE_IMAGE = re.compile(r"^[a-z0-9][a-z0-9._/:@-]{0,254}$")
 RE_CPATH = re.compile(r"^/[A-Za-z0-9._/-]{0,250}$")
@@ -213,7 +213,7 @@ def _sh(s):
 
 def _launcher(user, domain, app):
     root = safe_subpath(domain_dir(user, domain), app["root"])
-    lines = ["#!/bin/bash", f"# Hestia Pro: {domain} ({app['type']}) — generado, no editar", "set -e",
+    lines = ["#!/bin/bash", f"# iaachz-panel: {domain} ({app['type']}) — generado, no editar", "set -e",
              f"cd {_sh(root)}"]
     if app["type"] == "node":
         nb = runtimes.node_bin(app["version"])
@@ -249,7 +249,7 @@ def _unit(user, domain, app, launcher, envfile):
     root = safe_subpath(domain_dir(user, domain), app["root"])
     mem = f"MemoryMax={app['memory_mb']}M\n" if app.get("memory_mb") else ""
     text = f"""[Unit]
-Description=Hestia Pro: {domain} ({app['type']}) de {user}
+Description=iaachz-panel: {domain} ({app['type']}) de {user}
 After=network.target
 StartLimitIntervalSec=120
 StartLimitBurst=10
@@ -306,7 +306,7 @@ def _nginx_conf(user, domain, app):
 \t}}
 """
     with open(path, "w") as fh:
-        fh.write(f"# Hestia Pro ({app['type']}) — generado por v-hp, no editar\n" + body)
+        fh.write(f"# iaachz-panel ({app['type']}) — generado por v-hp, no editar\n" + body)
     os.chmod(path, 0o644)
 
 
@@ -329,7 +329,7 @@ def _sample_files(user, domain, app):
 const port = process.env.PORT || 3000;
 http.createServer((req, res) => {
   res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
-  res.end(`<h1>Node.js funcionando</h1><p>Aplicación de ejemplo de Hestia Pro (${process.version}).</p>`);
+  res.end(`<h1>Node.js funcionando</h1><p>Aplicación de ejemplo de iaachz-panel (${process.version}).</p>`);
 }).listen(port, '127.0.0.1', () => console.log('Escuchando en ' + port));
 """
         files = {name: code, "package.json": json.dumps(
@@ -340,7 +340,7 @@ http.createServer((req, res) => {
         if app["server"] == "gunicorn":
             code = """def app(environ, start_response):
     start_response('200 OK', [('Content-Type', 'text/html; charset=utf-8')])
-    return [b'<h1>Python funcionando</h1><p>Aplicacion WSGI de ejemplo de Hestia Pro.</p>']
+    return [b'<h1>Python funcionando</h1><p>Aplicacion WSGI de ejemplo de iaachz-panel.</p>']
 
 application = app
 """
@@ -454,7 +454,7 @@ def save(user, domain, cfg):
         _env_file(user, domain, app)
     _nginx_conf(user, domain, app)
     hestia("v-restart-web", check=False)
-    log_action(user, f"Hestia Pro: aplicación {app['type']} configurada en {domain}")
+    log_action(user, f"iaachz-panel: aplicación {app['type']} configurada en {domain}")
     return {"app": app, "sample_created": sample}
 
 
@@ -505,7 +505,7 @@ def _docker_run(user, domain, app, pull=False):
     os.chmod(plain, 0o600)
     cmd = [exe, "run", "-d", "--name", name, "--restart", "unless-stopped",
            "-p", f"127.0.0.1:{app['port']}:{app['container_port']}", "--env-file", plain,
-           "--label", f"hestia-pro.user={user}", "--label", f"hestia-pro.domain={domain}",
+           "--label", f"iaachz-panel.user={user}", "--label", f"iaachz-panel.domain={domain}",
            "--log-opt", "max-size=10m", "--log-opt", "max-file=3"]
     if app.get("memory_mb"):
         cmd += ["--memory", f"{app['memory_mb']}m"]
@@ -560,7 +560,7 @@ def action(user, domain, what):
         p = run([exe, {"start": "start", "restart": "restart", "stop": "stop"}[what], name], timeout=120)
         if p.returncode != 0:
             raise HPError(p.stderr.strip())
-    log_action(user, f"Hestia Pro: {what} de la aplicación de {domain}")
+    log_action(user, f"iaachz-panel: {what} de la aplicación de {domain}")
     return status_of(user, domain, app)
 
 
@@ -594,7 +594,7 @@ def delete(user, domain):
             raise HPError("Este dominio no tiene aplicación")
         _teardown(user, domain, app)
         _save_apps(user, apps)
-    log_action(user, f"Hestia Pro: aplicación eliminada de {domain} (los archivos se conservan)")
+    log_action(user, f"iaachz-panel: aplicación eliminada de {domain} (los archivos se conservan)")
     return {"deleted": domain}
 
 

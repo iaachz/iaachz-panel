@@ -1,6 +1,6 @@
 # Ajustes por servidor
 
-El código de Hestia Pro es el mismo en todos los servidores. Lo que cambia de uno a otro se guarda en
+El código de iaachz-panel es el mismo en todos los servidores. Lo que cambia de uno a otro se guarda en
 `/usr/local/hestia/data/hp/settings.json` (solo root) y se edita con `v-hp`.
 
 ## Claves
@@ -49,5 +49,5 @@ Los cambios se aplican de inmediato; no hace falta reiniciar nada.
 
 ## Compatibilidad
 
-El módulo de túneles también lee `/etc/hestia-tunnels/settings.json` (clave `public_ip`) si existe, por
-instalaciones anteriores. Los valores de `settings.json` de Hestia Pro tienen prioridad.
+El módulo de túneles también lee `/etc/iaachz-tunnels/settings.json` (clave `public_ip`) si existe, por
+instalaciones anteriores. Los valores de `settings.json` de iaachz-panel tienen prioridad.

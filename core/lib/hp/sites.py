@@ -328,7 +328,7 @@ def create(params):
                 step("Certificado SSL (Let's Encrypt)", "warning", msg)
                 summary["warnings"].append(msg)
 
-    log_action(user, f"Hestia Pro: dominio {domain} creado con el asistente ({hosting})")
+    log_action(user, f"iaachz-panel: dominio {domain} creado con el asistente ({hosting})")
     summary.update({"user": user, "domain": domain, "hosting": hosting})
     return summary
 
@@ -427,7 +427,7 @@ def wp_update(user, domain):
     step("Actualizando temas", "running")
     _wp(user, domain, ["theme", "update", "--all"])
     step("WordPress actualizado")
-    log_action(user, f"Hestia Pro: WordPress actualizado en {domain}")
+    log_action(user, f"iaachz-panel: WordPress actualizado en {domain}")
     return {"ok": True}
 
 

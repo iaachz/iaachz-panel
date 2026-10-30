@@ -26,13 +26,13 @@ def _arch():
 
 
 def _fetch(url, timeout=60):
-    req = urllib.request.Request(url, headers={"User-Agent": "hestia-pro"})
+    req = urllib.request.Request(url, headers={"User-Agent": "iaachz-panel"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return r.read()
 
 
 def _download(url, dest, timeout=600):
-    req = urllib.request.Request(url, headers={"User-Agent": "hestia-pro"})
+    req = urllib.request.Request(url, headers={"User-Agent": "iaachz-panel"})
     h = hashlib.sha256()
     with urllib.request.urlopen(req, timeout=timeout) as r, open(dest, "wb") as fh:
         while True:

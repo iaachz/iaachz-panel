@@ -1,6 +1,6 @@
 #!/bin/bash
-# Hestia Pro · DNS del proveedor: botón "Copiar al proveedor" y "Registros DNS" en la lista de dominios.
-#   install.sh             instala (copia a /opt/hestia-dns-proveedor y aplica los parches)
+# iaachz-panel · DNS del proveedor: botón "Copiar al proveedor" y "Registros DNS" en la lista de dominios.
+#   install.sh             instala (copia a /opt/iaachz-dns-proveedor y aplica los parches)
 #   install.sh --reapply   vuelve a aplicar tras actualizar Hestia (lo llama el gancho post_install)
 #   install.sh --quitar    revierte los parches y borra los archivos añadidos
 # Idempotente: si un parche ya está aplicado, lo omite. Si la sintaxis PHP falla, restaura el original.
@@ -9,7 +9,7 @@ set -euo pipefail
 HESTIA=/usr/local/hestia
 W=$HESTIA/web
 PAGES=$W/templates/pages
-SRC=/opt/hestia-dns-proveedor
+SRC=/opt/iaachz-dns-proveedor
 HERE="$(cd "$(dirname "$0")" && pwd)"
 PHP=$HESTIA/php/bin/php
 VERSION=$(grep -oP "^VERSION='\K[^']+" $HESTIA/conf/hestia.conf || echo unknown)
@@ -29,10 +29,10 @@ quitar_parche() { # archivo marca
 }
 
 if [ "${1:-}" = "--quitar" ]; then
-	quitar_parche list_web.php 'hestia-custom:web-dns'
-	quitar_parche list_dns_rec.php 'hestia-custom:dns-proveedor'
+	quitar_parche list_web.php 'iaachz-custom:web-dns'
+	quitar_parche list_dns_rec.php 'iaachz-custom:dns-proveedor'
 	rm -rf $W/list/dns-proveedor $W/inc/dns_proveedor.php $PAGES/list_dns_provider.php
-	sed -i '/hestia-dns-proveedor/d' /etc/hestiacp/hooks/post_install.sh 2>/dev/null || true
+	sed -i '/iaachz-dns-proveedor/d' /etc/hestiacp/hooks/post_install.sh 2>/dev/null || true
 	echo "DNS del proveedor: quitado (el original de list_web.php/list_dns_rec.php se restauró si había respaldo)."
 	exit 0
 fi
@@ -70,8 +70,8 @@ aplicar() { # archivo marca
 	echo "   $1: aplicado"
 }
 echo "== Parches"
-aplicar list_web.php 'hestia-custom:web-dns'
-aplicar list_dns_rec.php 'hestia-custom:dns-proveedor'
+aplicar list_web.php 'iaachz-custom:web-dns'
+aplicar list_dns_rec.php 'iaachz-custom:dns-proveedor'
 
 for f in $W/inc/dns_proveedor.php $W/list/dns-proveedor/index.php $PAGES/list_dns_provider.php; do
 	$PHP -l "$f" >/dev/null
@@ -80,6 +80,6 @@ done
 mkdir -p /etc/hestiacp/hooks
 HOOK=/etc/hestiacp/hooks/post_install.sh
 [ -f $HOOK ] || printf '#!/bin/bash\n' > $HOOK
-grep -q "hestia-dns-proveedor" $HOOK || echo '[ -x /opt/hestia-dns-proveedor/install.sh ] && /opt/hestia-dns-proveedor/install.sh --reapply  # hestia-dns-proveedor' >> $HOOK
-chmod 755 $HOOK /opt/hestia-dns-proveedor/install.sh 2>/dev/null || true
+grep -q "iaachz-dns-proveedor" $HOOK || echo '[ -x /opt/iaachz-dns-proveedor/install.sh ] && /opt/iaachz-dns-proveedor/install.sh --reapply  # iaachz-dns-proveedor' >> $HOOK
+chmod 755 $HOOK /opt/iaachz-dns-proveedor/install.sh 2>/dev/null || true
 echo "== DNS del proveedor listo (Hestia $VERSION)"

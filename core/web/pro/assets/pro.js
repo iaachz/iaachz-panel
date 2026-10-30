@@ -1,4 +1,4 @@
-/* Hestia Pro — utilidades y componentes Alpine de las pantallas estilo Plesk.
+/* iaachz-panel — utilidades y componentes Alpine de las pantallas estilo Plesk.
  * Se carga de forma síncrona en <head> (antes que Alpine) para registrar los componentes a tiempo. */
 (function () {
 	'use strict';
@@ -952,7 +952,7 @@
 	<div class="grid">${chartBlock(['cpu', 'mem', 'load', 'net', 'io', 'disk'])}</div>
 	<h2>Tráfico y conexiones</h2><div class="grid">${chartBlock(['webreq', 'codes', 'conns', 'mysql'])}</div>
 	${traffic}
-	<footer>Hestia Pro · informe generado desde el Monitor del panel</footer>
+	<footer>iaachz-panel · informe generado desde el Monitor del panel</footer>
 </div>${script}</body></html>`;
 			},
 			async exportHtml() {

@@ -1,5 +1,5 @@
 #!/usr/bin/python3 -I
-# info: Hestia Pro — funciones estilo Plesk (apps Node.js/Python/Docker, métricas, Git, asistentes)
+# info: iaachz-panel — funciones estilo Plesk (apps Node.js/Python/Docker, métricas, Git, asistentes)
 # options: COMMAND [ARGS...]
 #
 # example: v-hp metrics-live
@@ -12,7 +12,7 @@ import os
 import sys
 import traceback
 
-sys.path.insert(0, "/opt/hestia-pro/lib")
+sys.path.insert(0, "/opt/iaachz-panel/lib")
 os.umask(0o022)
 
 from hp import advisor, apache, apps, db, docker, geo, git, jobs, metrics, pma, runtimes, sampler, sites, traffic, weblog  # noqa: E402
@@ -222,7 +222,7 @@ def main(argv):
                 jobs.step(msg, "error")
                 jobs.finish(jid, False, msg)
             return
-        if cmd == "sampler":  # servicio hestia-pro-sampler (no devuelve JSON: corre para siempre)
+        if cmd == "sampler":  # servicio iaachz-panel-sampler (no devuelve JSON: corre para siempre)
             sampler.loop()
             return
         if cmd == "git-webhook":

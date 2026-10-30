@@ -226,7 +226,7 @@ hp_page_header($d, ($hasWeb ? e(hp_hosting_meta($t)[0]) . " · " : "") . "Suscri
 					<div class="hp-field">
 						<label>Plantilla nginx</label>
 						<select class="hp-select" x-model="tpl" <?= $s["app"] || $apache["enabled"] ? "disabled" : "" ?>>
-							<?php if ($s["app"] || $apache["enabled"]) { ?><option value="<?= e($s["tpl"]) ?>"><?= e($s["tpl"]) ?> (gestionada por Hestia Pro)</option><?php } ?>
+							<?php if ($s["app"] || $apache["enabled"]) { ?><option value="<?= e($s["tpl"]) ?>"><?= e($s["tpl"]) ?> (gestionada por iaachz-panel)</option><?php } ?>
 							<?php foreach ($templates as $tp) { ?><option value="<?= e($tp) ?>"><?= e($tp) ?></option><?php } ?>
 						</select>
 						<p class="hp-hint">Optimiza nginx para WordPress, Laravel, Moodle, etc. <?= $s["app"] ? "Con una aplicación activa se usa la plantilla <code>hp-app</code>." : ($apache["enabled"] ? "En modo nginx + Apache las reglas las pone tu <code>.htaccess</code> (plantilla <code>hp-apache</code>)." : "") ?></p>

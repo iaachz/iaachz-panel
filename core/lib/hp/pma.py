@@ -3,7 +3,7 @@
 1. El panel pide un ticket para una base de datos del usuario.
 2. Se crea un usuario MySQL temporal con permisos SOLO sobre esa base (caduca en 3 horas).
 3. El ticket (aleatorio, de un solo uso, válido 60 s y atado al navegador con una cookie) se deja en
-   /var/lib/hestia-pro/pma, legible solo por el usuario de PHP de phpMyAdmin (hestiamail).
+   /var/lib/iaachz-panel/pma, legible solo por el usuario de PHP de phpMyAdmin (hestiamail).
 4. hp-sso.php en phpMyAdmin canjea el ticket, lo borra y abre la sesión "signon" de phpMyAdmin.
 No usa la API de Hestia (su SSO propio obliga a restringir la API a 127.0.0.1).
 """
@@ -18,7 +18,7 @@ import time
 from .common import DATA, HPError, ensure_dir, hestia, load_json, locked, log_action, save_json
 from .db import _check_db
 
-TICKETS = "/var/lib/hestia-pro/pma"
+TICKETS = "/var/lib/iaachz-panel/pma"
 USERS = DATA + "/pma-users.json"
 PMA_RUNAS = "hestiamail"
 TICKET_TTL = 60
@@ -35,7 +35,7 @@ def ticket(user, db, bind="-"):
     if info.get("SUSPENDED") == "yes":
         raise HPError("La base de datos está suspendida")
     if not os.path.isdir(TICKETS):
-        raise HPError("Falta la carpeta de tickets: vuelve a ejecutar install.sh de Hestia Pro")
+        raise HPError("Falta la carpeta de tickets: vuelve a ejecutar install.sh de iaachz-panel")
     p = hestia("v-add-database-temp-user", user, db, "mysql", "", "0")
     try:
         login = json.loads(p.stdout)["login"]
@@ -55,7 +55,7 @@ def ticket(user, db, bind="-"):
     pw = pwd.getpwnam(PMA_RUNAS)
     os.chown(path, pw.pw_uid, pw.pw_gid)
     os.chmod(path, 0o600)
-    log_action(user, f"Hestia Pro: acceso a phpMyAdmin para la base de datos {db}", category="Databases")
+    log_action(user, f"iaachz-panel: acceso a phpMyAdmin para la base de datos {db}", category="Databases")
     return {"ticket": tid}
 
 

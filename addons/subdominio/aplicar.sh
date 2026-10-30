@@ -1,8 +1,8 @@
 #!/bin/bash
 # Aplica (o quita con --quitar) el boton "Agregar subdominio" en Hestia.
-# Idempotente. Se reejecuta solo tras cada apt/dpkg (/etc/apt/apt.conf.d/99hestia-subdominio).
+# Idempotente. Se reejecuta solo tras cada apt/dpkg (/etc/apt/apt.conf.d/99iaachz-subdominio).
 set -e
-SRC=/opt/hestia-subdominio
+SRC=/opt/iaachz-subdominio
 W=/usr/local/hestia/web
 LIST=$W/templates/pages/list_web.php
 BAK=$SRC/backup
