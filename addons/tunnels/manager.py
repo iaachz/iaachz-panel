@@ -53,7 +53,8 @@ def admin(user):
     x=json.loads(run([BIN+'v-list-user',user,'json']).stdout)
     if x.get(user,{}).get('ROLE')!='admin':raise Error('Solo los administradores pueden gestionar túneles.')
 def targets():
-    data=json.loads(run(['tailscale','status','--json']).stdout)
+    try:data=json.loads(run(['tailscale','status','--json']).stdout)
+    except (OSError,Error,ValueError,subprocess.SubprocessError):return []
     items=[]
     for peer in data.get('Peer',{}).values():
         if peer.get('OS')!='linux':continue
