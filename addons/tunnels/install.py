@@ -77,6 +77,7 @@ Unit=iaachz-tunnels-reconcile.service
 WantedBy=timers.target
 ''')
 hook=pathlib.Path('/etc/letsencrypt/renewal-hooks/deploy/60-iaachz-tunnels')
+hook.parent.mkdir(parents=True,exist_ok=True)
 hook.write_text('''#!/bin/sh
 case "$RENEWED_LINEAGE" in
   /etc/letsencrypt/live/ht-*) /usr/sbin/nginx -t && /usr/bin/systemctl reload nginx ;;
