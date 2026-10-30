@@ -61,8 +61,8 @@ y `bin/v-delete-user`.
 - Solo Hestia con **nginx**; no admite Apache como servidor principal de Hestia.
 - Los parches de plantillas de Hestia (`list_web.php`, `list_dns_rec.php`, `panel.php`…) están hechos para
   la serie 1.10; con otra versión el instalador avisa y omite el parche que no encaje.
-- El módulo de túneles necesita [Tailscale](https://tailscale.com) para listar destinos VPN.
-- Sin Tailscale el módulo de túneles se instala, pero no ofrece destinos VPN.
+- El módulo de túneles usa [Tailscale](https://tailscale.com) para ofrecer destinos VPN; sin él se instala,
+  pero la lista de destinos queda vacía.
 - Si instalas Hestia **sin DNS (BIND)**, la página `/list/dns/` del propio Hestia puede dar error; es un
   comportamiento de Hestia, no de este proyecto. El botón de DNS del proveedor sigue funcionando para los sitios web.
 - Este proyecto no está afiliado a Hestia Control Panel.
