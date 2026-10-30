@@ -6,10 +6,11 @@ reemplazar su motor: usa sus comandos `v-*` y añade los que faltaban.
 > Prefijo interno: el comando del módulo principal es `v-hp` y sus datos están en `data/hp`; `hp` es solo
 > una abreviatura corta usada en el código.
 
-> **Estado:** probado con Hestia **1.10.5** en **Ubuntu 26.04** y **Debian 13**. Los módulos se aplican y se
-> reaplican sobre servidores en uso; la instalación desde cero en una máquina limpia con `install.sh` todavía
-> no se ha verificado de principio a fin (ver [Limitaciones](#limitaciones)). Úsalo primero en un servidor de
-> pruebas y haz copia de seguridad.
+> **Estado:** probado con Hestia **1.10.5** en **Ubuntu 26.04** y **Debian 13**. La instalación completa
+> (`install.sh`) se verificó desde un clon de este repositorio sobre un Debian 13 limpio con Hestia recién
+> instalado: todas las páginas del panel responden sin errores de PHP, los ajustes y el gancho de actualización
+> funcionan y volver a ejecutar el instalador es seguro. Aun así, haz copia de seguridad y pruébalo primero
+> en un servidor de pruebas.
 
 ## Qué incluye
 
@@ -61,7 +62,9 @@ y `bin/v-delete-user`.
 - Los parches de plantillas de Hestia (`list_web.php`, `list_dns_rec.php`, `panel.php`…) están hechos para
   la serie 1.10; con otra versión el instalador avisa y omite el parche que no encaje.
 - El módulo de túneles necesita [Tailscale](https://tailscale.com) para listar destinos VPN.
-- `install.sh` completo sobre una instalación limpia no está verificado de extremo a extremo.
+- Sin Tailscale el módulo de túneles se instala, pero no ofrece destinos VPN.
+- Si instalas Hestia **sin DNS (BIND)**, la página `/list/dns/` del propio Hestia puede dar error; es un
+  comportamiento de Hestia, no de este proyecto. El botón de DNS del proveedor sigue funcionando para los sitios web.
 - Este proyecto no está afiliado a Hestia Control Panel.
 
 ## Licencia
