@@ -23,7 +23,7 @@ iaachz-panel no instala Hestia.
 ## 2. Descargar e instalar
 
 ```bash
-git clone https://github.com/iaachz96-star/iaachz-panel.git
+git clone https://github.com/iaachz/iaachz-panel.git
 cd iaachz-panel
 sudo ./install.sh --check     # comprueba requisitos, no cambia nada
 sudo ./install.sh             # instala todos los módulos
