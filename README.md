@@ -1,7 +1,10 @@
-# Hestia Pro
+# iaachz-panel
 
 Una capa estilo **Plesk** para [Hestia Control Panel](https://hestiacp.com). Se instala junto a Hestia sin
 reemplazar su motor: usa sus comandos `v-*` y añade los que faltaban.
+
+> El módulo principal se llama internamente *Hestia Pro* (comando `v-hp`, carpeta `/opt/hestia-pro`); esos
+> nombres se conservan para no romper instalaciones existentes.
 
 > **Estado:** probado con Hestia **1.10.5** en **Ubuntu 26.04** y **Debian 13**. Los módulos se aplican y se
 > reaplican sobre servidores en uso; la instalación desde cero en una máquina limpia con `install.sh` todavía
@@ -20,8 +23,8 @@ reemplazar su motor: usa sus comandos `v-*` y añade los que faltaban.
 ## Instalación rápida
 
 ```bash
-git clone https://github.com/<tu-usuario>/hestia-pro.git
-cd hestia-pro
+git clone https://github.com/iaachz/iaachz-panel.git
+cd iaachz-panel
 sudo ./install.sh --check      # solo comprueba requisitos
 sudo ./install.sh              # instala todo
 ```

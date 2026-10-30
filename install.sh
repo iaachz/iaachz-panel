@@ -1,5 +1,5 @@
 #!/bin/bash
-# Hestia Pro · instalador completo.
+# iaachz-panel · instalador completo.
 #
 #   sudo ./install.sh                  instala todo: núcleo, subdominios, túneles y DNS del proveedor
 #   sudo ./install.sh --check          solo comprueba los requisitos, no cambia nada

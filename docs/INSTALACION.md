@@ -23,8 +23,8 @@ Hestia Pro no instala Hestia.
 ## 2. Descargar e instalar
 
 ```bash
-git clone https://github.com/<tu-usuario>/hestia-pro.git
-cd hestia-pro
+git clone https://github.com/iaachz/iaachz-panel.git
+cd iaachz-panel
 sudo ./install.sh --check     # comprueba requisitos, no cambia nada
 sudo ./install.sh             # instala todos los módulos
 ```
@@ -108,7 +108,7 @@ dominio, y lo deja escuchando únicamente en `127.0.0.1:7080`.
 ## 6. Actualizar
 
 ```bash
-cd hestia-pro && git pull
+cd iaachz-panel && git pull
 sudo ./install.sh
 ```
 
