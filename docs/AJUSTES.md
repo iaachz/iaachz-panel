@@ -13,10 +13,11 @@ El código de iaachz-panel es el mismo en todos los servidores. Lo que cambia de
 | `tunnel_default_target` | texto | *(vacío)* | Destino (IP VPN) que aparece ya escrito al crear un túnel. |
 | `tunnel_default_port` | texto | `8080` | Puerto que aparece ya escrito al crear un túnel. |
 | `target_labels` | lista `ip=nombre` | *(vacío)* | Nombre amistoso para IPs VPN: `100.64.0.5=servidor-casa,100.64.0.9=nas`. |
+| `language` | texto | `es` | Idioma de la interfaz: `es`, `en`… o `auto` (el del perfil de cada usuario). Ver [IDIOMAS.md](IDIOMAS.md). |
 | `pma_same_origin` | sí/no | `false` | `true` en servidores **privados**: phpMyAdmin se abre en el mismo origen y puerto que el panel, en vez de en el dominio web por el puerto 443. |
 
 Además, las claves de alertas que ya edita *Herramientas y ajustes* en el panel (`alert_cpu`, `alert_mem`,
-`alert_disk`, `alert_load`, `alert_ssl_days`, `alert_services`, `alert_apps`, `alert_email`, `metrics_enabled`).
+`alert_disk`, `alert_load`, `alert_ssl_days`, `alert_services`, `alert_apps`, `alert_uptime`, `alert_email`, `metrics_enabled`).
 
 > `v-hp settings-set` solo acepta claves que ya existen en la lista anterior; ignora el resto.
 

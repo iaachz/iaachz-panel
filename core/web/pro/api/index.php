@@ -19,14 +19,14 @@ function hp_bad(string $msg, int $code = 400): void {
 
 function hp_need_admin(): void {
 	if (!hp_admin()) {
-		hp_bad("Solo el administrador puede hacer esto", 403);
+		hp_bad(__('Solo el administrador puede hacer esto'), 403);
 	}
 }
 
 // Misma política que Hestia: los clientes solo cambian plantillas si POLICY_USER_EDIT_WEB_TEMPLATES lo permite.
 function hp_need_template_policy(): void {
 	if (!hp_admin() && ($_SESSION["POLICY_USER_EDIT_WEB_TEMPLATES"] ?? "no") !== "yes") {
-		hp_bad("El administrador no permite cambiar plantillas en este servidor", 403);
+		hp_bad(__('El administrador no permite cambiar plantillas en este servidor'), 403);
 	}
 }
 
@@ -41,16 +41,16 @@ function hp_call(array $args) {
 function hp_vcall(string $cmd, array $args): void {
 	[$rc, $out] = hp_v($cmd, $args);
 	if ($rc !== 0) {
-		hp_bad(trim($out) ?: "$cmd falló (código $rc)");
+		hp_bad(trim($out) ?: __("%s falló (código %s)", $cmd, $rc));
 	}
 }
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-	hp_bad("Método no permitido", 405);
+	hp_bad(__('Método no permitido'), 405);
 }
 $in = json_decode(file_get_contents("php://input"), true) ?: [];
 if (empty($in["token"]) || !hash_equals($_SESSION["token"] ?? "", (string) $in["token"])) {
-	hp_bad("Sesión caducada: recarga la página", 403);
+	hp_bad(__('Sesión caducada: recarga la página'), 403);
 }
 
 $a = (string) ($in["action"] ?? "");
@@ -133,7 +133,7 @@ switch ($a) {
 		hp_need_admin();
 		$name = (string) ($in["name"] ?? "");
 		if (!preg_match('/^[a-z0-9@._-]{1,64}$/', $name)) {
-			hp_bad("Servicio no válido");
+			hp_bad(__('Servicio no válido'));
 		}
 		hp_vcall("v-restart-service", [$name]);
 		hp_ok(["ok" => true]);
@@ -145,7 +145,13 @@ switch ($a) {
 		hp_ok(hp_call(["settings-get"]));
 	case "settings-save":
 		hp_need_admin();
-		hp_ok(hp_call(["settings-set", hp_b64((array) ($in["settings"] ?? []))]));
+		$saved = hp_call(["settings-set", hp_b64((array) ($in["settings"] ?? []))]);
+		hp_lang_forget();
+		hp_ok($saved);
+	case "uptime-status":
+		hp_ok(hp_call(["uptime-status", $admin ? "all" : $me]));
+	case "uptime-log":
+		hp_ok(hp_call(["uptime-log", $admin ? "all" : $me, $domain !== "" ? $domain : "-", (int) ($in["limit"] ?? 300), $admin ? "yes" : "no"]));
 	case "runtimes":
 		hp_ok(hp_call(["runtimes"]));
 	case "runtime-install":
@@ -172,7 +178,7 @@ switch ($a) {
 			unset($p["new_user"]);
 			$p["user"] = $me;
 			if (in_array($p["hosting"] ?? "", ["docker"])) {
-				hp_bad("Docker solo lo puede configurar el administrador", 403);
+				hp_bad(__('Docker solo lo puede configurar el administrador'), 403);
 			}
 		} elseif (empty($p["new_user"])) {
 			$p["user"] = hp_target_user((string) ($p["user"] ?? ""));
@@ -199,7 +205,7 @@ switch ($a) {
 		$tpl = (string) ($in["backend"] ?? "");
 		$allowed = hp_vjson("v-list-web-templates-backend");
 		if (!in_array($tpl, $allowed, true)) {
-			hp_bad("Versión de PHP no disponible");
+			hp_bad(__('Versión de PHP no disponible'));
 		}
 		hp_vcall("v-change-web-domain-backend-tpl", [$user, $domain, $tpl, "yes"]);
 		hp_run(["apache-sync"], $ignored); // el vhost de Apache apunta al socket de la nueva versión
@@ -208,7 +214,7 @@ switch ($a) {
 		hp_need_template_policy();
 		$tpl = (string) ($in["tpl"] ?? "");
 		if (!in_array($tpl, hp_vjson("v-list-web-templates"), true) || in_array($tpl, ["hp-app", "hp-apache"], true)) {
-			hp_bad("Plantilla no válida");
+			hp_bad(__('Plantilla no válida'));
 		}
 		hp_vcall("v-change-web-domain-tpl", [$user, $domain, $tpl, "yes"]);
 		hp_ok(["ok" => true]);
@@ -226,7 +232,7 @@ switch ($a) {
 			}
 		}
 		if (!$site) {
-			hp_bad("Dominio no encontrado");
+			hp_bad(__('Dominio no encontrado'));
 		}
 		if (($site["hosting"] ?? "") !== "none") {
 			hp_vcall("v-delete-web-domain", [$user, $domain, "yes"]);
@@ -253,10 +259,10 @@ switch ($a) {
 			$id = substr($src, 7);
 			$meta = preg_match('/^[a-f0-9]{32}$/', $id) ? json_decode((string) @file_get_contents("/var/lib/iaachz-panel/uploads/$id.json"), true) : null;
 			if (!$meta || $meta["owner"] !== $_SESSION["user"] || $meta["received"] !== $meta["size"]) {
-				hp_bad("La subida no está completa o no es tuya");
+				hp_bad(__('La subida no está completa o no es tuya'));
 			}
 		} elseif ($src === "" || str_contains($src, chr(0))) {
-			hp_bad("Indica el archivo del volcado");
+			hp_bad(__('Indica el archivo del volcado'));
 		}
 		hp_ok(hp_call(["db-import", $user, (string) ($in["database"] ?? ""), $src, !empty($in["wipe"]) ? "yes" : "no"]));
 	case "db-tables":
@@ -284,20 +290,20 @@ switch ($a) {
 	case "app-save":
 		$app = (array) ($in["app"] ?? []);
 		if (!$admin && ($app["type"] ?? "") === "docker") {
-			hp_bad("Docker solo lo puede configurar el administrador", 403);
+			hp_bad(__('Docker solo lo puede configurar el administrador'), 403);
 		}
 		if (!$admin && ($app["type"] ?? "") === "proxy") {
 			$host = strtolower((string) parse_url((string) ($app["target"] ?? ""), PHP_URL_HOST));
 			$ip = filter_var(trim($host, "[]"), FILTER_VALIDATE_IP) ? trim($host, "[]") : gethostbyname($host);
 			if ($host === "localhost" || !filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-				hp_bad("El proxy solo puede apuntar a direcciones públicas. Para servicios internos pide ayuda al administrador.", 403);
+				hp_bad(__('El proxy solo puede apuntar a direcciones públicas. Para servicios internos pide ayuda al administrador.'), 403);
 			}
 		}
 		hp_ok(hp_call(["app-save", $user, $domain, hp_b64($app)]));
 	case "app-action":
 		$what = (string) ($in["what"] ?? "");
 		if (!in_array($what, ["start", "stop", "restart", "enable", "disable"], true)) {
-			hp_bad("Acción no válida");
+			hp_bad(__('Acción no válida'));
 		}
 		hp_ok(hp_call(["app-action", $user, $domain, $what]));
 	case "app-delete":
@@ -357,5 +363,5 @@ switch ($a) {
 		hp_ok(hp_call(["compose-action", (string) ($in["name"] ?? ""), (string) ($in["what"] ?? "")]));
 
 	default:
-		hp_bad("Acción desconocida: " . $a, 404);
+		hp_bad(__('Acción desconocida: ') . $a, 404);
 }

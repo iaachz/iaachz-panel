@@ -33,6 +33,10 @@ sudo ./install.sh              # instala todo
 Guía paso a paso (incluye cómo completar la pila de Hestia con antivirus, antispam, gestor de archivos,
 PHP 8.5 y webmail): [`docs/INSTALACION.md`](docs/INSTALACION.md).
 
+## Idiomas
+
+La interfaz está en español, inglés, portugués y francés; se elige en *Herramientas y ajustes → Idioma de la interfaz* (o «automático» según el perfil de cada usuario). Añadir otro idioma es rellenar un archivo JSON: ver [docs/IDIOMAS.md](docs/IDIOMAS.md).
+
 ## Un mismo código en todos tus servidores
 
 Nada de lo específico de un servidor está escrito en el código. IP pública, dominios ocultos, destino VPN por

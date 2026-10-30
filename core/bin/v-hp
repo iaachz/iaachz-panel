@@ -9,14 +9,16 @@
 # Las operaciones largas devuelven {"job": ID}; su progreso se consulta con `v-hp job-status ID`.
 
 import os
+import re
 import sys
 import traceback
 
 sys.path.insert(0, "/opt/iaachz-panel/lib")
 os.umask(0o022)
 
-from hp import advisor, apache, apps, db, docker, geo, git, jobs, metrics, pma, runtimes, sampler, sites, traffic, weblog  # noqa: E402
-from hp.common import (DATA, HPError, b64json, check_user, check_web_domain, ensure_dir, fail,  # noqa: E402
+from hp import advisor, apache, apps, db, docker, geo, git, jobs, metrics, pma, runtimes, sampler, sites, traffic, uptime, weblog  # noqa: E402
+from hp import i18n  # noqa: E402
+from hp.common import (DATA, HPError, b64json, check_domain_fmt, check_user, check_web_domain, ensure_dir, fail,  # noqa: E402
                        hestia, list_users, load_json, out, save_json, settings)
 
 
@@ -56,6 +58,8 @@ def _settings_set(b64):
     cur = settings()
     for k, v in data.items():
         if k not in cur:
+            continue
+        if k == "language" and not (v == "auto" or re.fullmatch(r"[a-z]{2,3}", str(v))):
             continue
         if isinstance(cur[k], bool):
             cur[k] = bool(v)
@@ -100,6 +104,10 @@ def _app_save(user, domain, b64):
 SYNC = {
     "metrics-live": lambda: metrics.live(),
     "metrics-collect": lambda: metrics.collect(),
+    "uptime-check": lambda: uptime.check(),
+    "uptime-status": lambda user="all": uptime.status(_users(user)),
+    "uptime-log": lambda user="all", domain="-", n="300", admin="no": uptime.log(
+        _users(user), "" if domain == "-" else check_domain_fmt(domain), n, admin == "yes"),
     "metrics-history": lambda rng="24h": metrics.history(rng),
     "metrics-live-history": lambda: sampler.history(),
     "services": lambda: metrics.services(),
@@ -206,6 +214,11 @@ def _precheck(cmd, args):
 def main(argv):
     if not argv:
         fail("Uso: v-hp COMANDO [ARGS...]")
+    if argv[0].startswith("--lang="):  # idioma de los mensajes: lo pasa el panel según el usuario
+        i18n.set_lang(argv[0][7:])
+        argv = argv[1:]
+        if not argv:
+            fail("Uso: v-hp COMANDO [ARGS...]")
     cmd, args = argv[0], argv[1:]
     try:
         if cmd == "_job-run":
@@ -218,7 +231,7 @@ def main(argv):
                 msg = str(e) if isinstance(e, HPError) else f"{type(e).__name__}: {e}"
                 if not isinstance(e, HPError):
                     traceback.print_exc()
-                print("ERROR: " + msg, flush=True)
+                print("ERROR: " + i18n.tr(msg), flush=True)
                 jobs.step(msg, "error")
                 jobs.finish(jid, False, msg)
             return

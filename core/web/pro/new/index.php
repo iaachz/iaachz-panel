@@ -18,4 +18,4 @@ $wiz = [
 	"hosting" => in_array($_GET["hosting"] ?? "", ["php", "wordpress", "node", "python", "docker", "proxy", "static", "none"]) ? $_GET["hosting"] : "php",
 	"user" => hp_target_user(),
 ];
-hp_render($mode === "subscription" ? "Nueva suscripción" : "Agregar dominio", "sites", "new", ["wiz" => $wiz]);
+hp_render($mode === "subscription" ? __('Nueva suscripción') : __('Agregar dominio'), "sites", "new", ["wiz" => $wiz]);

@@ -38,7 +38,8 @@ def out(obj):
 
 
 def fail(msg, code=1):
-    out({"error": str(msg)})
+    from .i18n import tr
+    out({"error": tr(str(msg))})
     sys.exit(code)
 
 
@@ -244,7 +245,7 @@ def settings():
     base = {
         "alert_cpu": 90, "alert_mem": 90, "alert_disk": 85, "alert_load": 0,
         "alert_ssl_days": 14, "alert_services": True, "alert_apps": True,
-        "alert_email": "", "metrics_enabled": True,
+        "alert_email": "", "metrics_enabled": True, "alert_uptime": True,
         # Ajustes propios de cada servidor (el código es el mismo en todos)
         "public_ip": "",               # IP pública de este servidor (vacío = detectar)
         "hidden_domains": "",          # dominios que no se listan en /pro/sites (separados por coma)
@@ -253,6 +254,7 @@ def settings():
         "tunnel_default_port": "8080",
         "target_labels": "",           # nombres para IPs VPN: 100.64.0.1=servidor-casa,...
         "pma_same_origin": False,      # True: phpMyAdmin se abre en el mismo origen que el panel
+        "language": "es",              # idioma de la interfaz: es, en, pt, fr, de, it o "auto" (el del perfil de cada usuario)
     }
     base.update(load_json(f"{DATA}/settings.json", {}))
     return base

@@ -22,10 +22,22 @@ Se instala junto a Hestia sin reemplazar su motor: usa sus comandos `v-*` y aña
 | WP Toolkit (básico) | Instalación de WordPress en el asistente, estado de núcleo/plugins/temas, actualizar todo | dominio → WordPress |
 | Monitoring | Historial 1 h–1 año (1 muestra/min, SQLite), alertas por CPU/RAM/disco/carga/servicios/apps/SSL a la campana y por correo | `/pro/monitor/`, Herramientas → Alertas |
 | Monitoring → Tráfico | Peticiones/s, conexiones nuevas/s y abiertas (nginx `stub_status`), TCP establecidas, consultas MySQL/s; respuestas 2xx-5xx por minuto; dominios, páginas y URLs con error (404/5xx) más frecuentes; % de bots; IPs con más peticiones, IPs sospechosas (escaneos) y conectados ahora. Se leen solo las líneas nuevas de los registros de nginx cada minuto (detalle 8 días, por horas 1 año). También en la ficha de cada dominio. Modo **En vivo** (muestra cada ~2 s) y **Exportar**: informe HTML de un solo archivo con gráficos interactivos (tooltip, leyenda que oculta series, modo claro/oscuro, sin internet), el mismo informe en PDF vía impresión del navegador, y datos CSV | `/pro/monitor/#traffic` |
+| Uptime (disponibilidad) | Cada minuto sondea cada sitio desde el servidor: puerto de la aplicación y petición real a nginx con el Host del dominio; también la conexión a internet del servidor. Muestra cuánto lleva en línea cada sitio, % de disponibilidad (hoy / 7 / 30 días), tiempo de respuesta y un **registro** de caídas, recuperaciones, cortes de internet y huecos en que el servidor estuvo parado (90 días de estadísticas). Caída = 2 fallos seguidos; avisa en la campana y por correo | `/pro/uptime/` |
 | Advisor | Puntuación y recomendaciones (SSL, HTTPS, cortafuegos, actualizaciones, reinicio pendiente, disco, apps caídas, PHP sin soporte) | `/pro/advisor/` |
 | Tools & Settings | Todo lo del servidor agrupado, tareas en segundo plano, terminal web en un clic | `/pro/tools/` |
 
 También: estilo nuevo para la pantalla de acceso y las páginas nativas de Hestia, tema claro y oscuro, móvil.
+
+## Integraciones opcionales (NexoPanel)
+
+Dos pantallas se activan solas si el servidor tiene instalado NexoPanel (un proyecto aparte, no incluido en este repositorio); sin él no aparecen en el menú:
+
+| Pantalla | Se muestra si existe | Qué usa |
+|---|---|---|
+| **Webs sin dominio** (`/pro/local-apps/`, solo administrador) | `/usr/local/hestia/bin/v-local-apps` | Publica webs/apps por IP y puerto, sin DNS. La acción la hace `v-local-apps` (NexoPanel) |
+| **Archivos y transferencias** (`/pro/transfers/`) | `/etc/nexopanel/transfers.json` | Gestor de archivos lftp-web incrustado; `transfers/auth.php` es el endpoint interno que nginx consulta (`auth_request`) y que firma la sesión de Hestia. Necesita el bloque `location ^~ /pro/transfers/service/` en el nginx de Hestia |
+
+También se incluye `web/pro/assets/world.json` (mapa de países del Monitor → Seguridad y países, que antes faltaba en el repositorio).
 
 ## Cómo funciona
 
