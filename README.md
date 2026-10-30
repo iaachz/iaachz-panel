@@ -23,7 +23,7 @@ reemplazar su motor: usa sus comandos `v-*` y añade los que faltaban.
 ## Instalación rápida
 
 ```bash
-git clone https://github.com/iaachz/iaachz-panel.git
+git clone https://github.com/iaachz96-star/iaachz-panel.git
 cd iaachz-panel
 sudo ./install.sh --check      # solo comprueba requisitos
 sudo ./install.sh              # instala todo
