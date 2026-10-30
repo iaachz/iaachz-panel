@@ -5,6 +5,13 @@
 
 	const HP = (window.HP = {});
 
+	// Traducción: el texto en español es la clave (ver web/pro/inc/i18n.php). HP.t('Hay %s sitios', n)
+	HP.lang = window.HP_LANG || 'es';
+	HP.t = function (s, ...args) {
+		let i = 0;
+		return ((window.HP_I18N && window.HP_I18N[s]) || s).replace(/%[sd]/g, (m) => (i < args.length ? args[i++] : m));
+	};
+
 	// ------------------------------------------------------------------ utilidades
 
 	HP.api = async function (action, data = {}) {
@@ -18,10 +25,10 @@
 		try {
 			json = await res.json();
 		} catch (e) {
-			throw new Error('Respuesta no válida del servidor (' + res.status + ')');
+			throw new Error(HP.t('Respuesta no válida del servidor (%s)', res.status));
 		}
 		if (!res.ok || (json && json.error)) {
-			throw new Error((json && json.error) || 'Error ' + res.status);
+			throw new Error((json && json.error) || HP.t('Error %s', res.status));
 		}
 		return json;
 	};
@@ -34,7 +41,7 @@
 			n /= 1024;
 			i++;
 		}
-		return n.toFixed(i ? dec : 0).replace('.', ',') + ' ' + u[i];
+		return n.toFixed(i ? dec : 0).replace('.', HP.lang === 'en' ? '.' : ',') + ' ' + u[i];
 	};
 
 	HP.rate = (n) => HP.bytes(n) + '/s';
@@ -73,7 +80,7 @@
 	};
 
 	HP.copy = function (text) {
-		navigator.clipboard?.writeText(text).then(() => HP.toast('Copiado al portapapeles'));
+		navigator.clipboard?.writeText(text).then(() => HP.toast(HP.t('Copiado al portapapeles')));
 	};
 
 	HP.password = function (n = 16) {
@@ -101,12 +108,12 @@
 	}
 	HP.dialog = dialog;
 
-	HP.confirm = function (message, { title = 'Confirmar', ok = 'Continuar', danger = false } = {}) {
+	HP.confirm = function (message, { title = HP.t('Confirmar'), ok = HP.t('Continuar'), danger = false } = {}) {
 		return new Promise((resolve) => {
 			const d = dialog(
 				title,
 				'<p style="margin:0"></p>',
-				'<button type="button" class="hp-btn" data-close>Cancelar</button>' +
+				'<button type="button" class="hp-btn" data-close>' + HP.t('Cancelar') + '</button>' +
 					'<button type="button" class="hp-btn ' + (danger ? 'hp-btn-danger' : 'hp-btn-primary') + '" data-ok></button>',
 			);
 			d.querySelector('p').textContent = message;
@@ -122,7 +129,7 @@
 	};
 
 	HP.logs = async function (title, loader) {
-		const d = dialog(title, '<pre class="hp-log">Cargando…</pre>', '<button type="button" class="hp-btn" data-reload><i class="fas fa-rotate"></i>Actualizar</button><button type="button" class="hp-btn hp-btn-primary" data-close>Cerrar</button>');
+		const d = dialog(title, '<pre class="hp-log">' + HP.t('Cargando…') + '</pre>', '<button type="button" class="hp-btn" data-reload><i class="fas fa-rotate"></i>' + HP.t('Actualizar') + '</button><button type="button" class="hp-btn hp-btn-primary" data-close>' + HP.t('Cerrar') + '</button>');
 		d.style.width = 'min(1000px, calc(100vw - 24px))';
 		const pre = d.querySelector('pre');
 		const load = async () => {
@@ -131,7 +138,7 @@
 				pre.textContent = (r.log || '').trim() || '(sin registros)';
 				pre.scrollTop = pre.scrollHeight;
 			} catch (e) {
-				pre.textContent = 'Error: ' + e.message;
+				pre.textContent = HP.t('Error: %s', e.message);
 			}
 		};
 		d.querySelector('[data-reload]').addEventListener('click', load);
@@ -139,13 +146,13 @@
 	};
 
 	// Sigue una tarea en segundo plano mostrando pasos y registro. Devuelve el resultado final.
-	HP.job = function (jobId, title = 'Trabajando…', { autoClose = false } = {}) {
+	HP.job = function (jobId, title = HP.t('Trabajando…'), { autoClose = false } = {}) {
 		return new Promise((resolve, reject) => {
 			const d = dialog(
 				title,
-				'<ul class="hp-steps"><li class="is-running"><i class="fas fa-circle-notch fa-spin"></i><span>Iniciando…</span></li></ul>' +
-					'<details class="hp-mt"><summary class="hp-muted hp-small" style="cursor:pointer">Ver registro detallado</summary><pre class="hp-log hp-mt"></pre></details>',
-				'<span class="hp-muted hp-small" data-status style="margin-right:auto"></span><button type="button" class="hp-btn" data-close>Cerrar</button>',
+				'<ul class="hp-steps"><li class="is-running"><i class="fas fa-circle-notch fa-spin"></i><span>' + HP.t('Iniciando…') + '</span></li></ul>' +
+					'<details class="hp-mt"><summary class="hp-muted hp-small" style="cursor:pointer">' + HP.t('Ver registro detallado') + '</summary><pre class="hp-log hp-mt"></pre></details>',
+				'<span class="hp-muted hp-small" data-status style="margin-right:auto"></span><button type="button" class="hp-btn" data-close>' + HP.t('Cerrar') + '</button>',
 			);
 			const steps = d.querySelector('.hp-steps');
 			const pre = d.querySelector('pre');
@@ -168,11 +175,11 @@
 						if (st === 'running' && (i < list.length - 1 || j.status !== 'running')) st = j.status === 'error' && i === list.length - 1 ? 'error' : 'ok';
 						return '<li class="is-' + st + '"><i class="fas ' + (icon[st] || 'fa-circle') + '"></i><span>' + HP.esc(s.name) + (s.detail ? '<small>' + HP.esc(s.detail) + '</small>' : '') + '</span></li>';
 					})
-					.join('') || '<li class="is-running"><i class="fas fa-circle-notch fa-spin"></i><span>Iniciando…</span></li>';
+					.join('') || '<li class="is-running"><i class="fas fa-circle-notch fa-spin"></i><span>' + HP.t('Iniciando…') + '</span></li>';
 				const log = (j.log || '').split('\n').filter((l) => !l.startsWith('::result::')).join('\n');
 				pre.textContent = log || '(sin salida)';
 				if (j.status === 'running') {
-					status.textContent = 'En curso…';
+					status.textContent = HP.t('En curso…');
 					return setTimeout(tick, 1200);
 				}
 				done = true;
@@ -188,14 +195,14 @@
 					if (autoClose) setTimeout(() => d.close(), 900);
 					resolve({ result, dialog: d, job: j });
 				} else {
-					status.innerHTML = '<span style="color:var(--hp-danger)"><i class="fas fa-circle-xmark"></i> ' + HP.esc(j.error || 'Falló') + '</span>';
+					status.innerHTML = '<span style="color:var(--hp-danger)"><i class="fas fa-circle-xmark"></i> ' + HP.esc(j.error || HP.t('Falló')) + '</span>';
 					d.querySelector('details').open = true;
-					reject(Object.assign(new Error(j.error || 'La tarea falló'), { dialog: d }));
+					reject(Object.assign(new Error(j.error || HP.t('La tarea falló')), { dialog: d }));
 				}
 			};
 			tick();
 			d.addEventListener('close', () => {
-				if (!done) HP.toast('La tarea sigue en segundo plano. Puedes verla en Herramientas → Tareas.', 'ok');
+				if (!done) HP.toast(HP.t('La tarea sigue en segundo plano. Puedes verla en Herramientas → Tareas.'), 'ok');
 			});
 		});
 	};
@@ -310,7 +317,7 @@
 				b.className = off[i] ? 'off' : '';
 				b.innerHTML = '<i style="background:' + s.color + '"></i>';
 				b.appendChild(document.createTextNode(s.name));
-				b.title = 'Mostrar / ocultar';
+				b.title = HP.t('Mostrar / ocultar');
 				b.onclick = function () { off[i] = !off[i]; draw(box); };
 				lg.appendChild(b);
 			});
@@ -322,7 +329,7 @@
 			if (n < 2 || !vis.length) {
 				var e = document.createElement('div');
 				e.className = 'empty';
-				e.textContent = n < 2 ? 'Sin datos en este periodo' : 'Todas las series están ocultas';
+				e.textContent = n < 2 ? HP.t('Sin datos en este periodo') : HP.t('Todas las series están ocultas');
 				box.appendChild(e);
 				return;
 			}
@@ -432,9 +439,9 @@
 		}
 	})();
 	HP.countryName = function (cc) {
-		if (!cc || cc === '--') return 'Desconocido';
-		if (cc === 'LO') return 'Red local / privada';
-		if (cc === 'IP') return 'IPs bloqueadas';
+		if (!cc || cc === '--') return HP.t('Desconocido');
+		if (cc === 'LO') return HP.t('Red local / privada');
+		if (cc === 'IP') return HP.t('IPs bloqueadas');
 		try {
 			return (REGION_NAMES && REGION_NAMES.of(cc)) || cc;
 		} catch (e) {
@@ -644,7 +651,7 @@
 					histChart = await HP.lineChart(this.$refs.hist, labels, [
 						{ label: 'CPU %', data: s.cpu, borderColor: '#1f6fd6' },
 						{ label: 'RAM %', data: s.mem, borderColor: '#e0569b' },
-						{ label: 'Disco %', data: s.disk, borderColor: '#14945a', fill: false },
+						{ label: HP.t('Disco %'), data: s.disk, borderColor: '#14945a', fill: false },
 					], { hardMax: 100, fmt: (v) => Math.round(v) + '%' });
 				} catch (e) {
 					this.error = e.message;
@@ -658,10 +665,10 @@
 				}
 			},
 			async restart(name) {
-				if (!(await HP.confirm('¿Reiniciar el servicio ' + name + '?', { ok: 'Reiniciar' }))) return;
+				if (!(await HP.confirm(HP.t('¿Reiniciar el servicio %s?', name), { ok: HP.t('Reiniciar') }))) return;
 				try {
 					await HP.api('service-restart', { name });
-					HP.toast('Servicio ' + name + ' reiniciado');
+					HP.toast(HP.t('Servicio %s reiniciado', name));
 					this.loadServices();
 				} catch (e) {
 					HP.toast(e.message, 'error');
@@ -704,7 +711,7 @@
 			live: null,
 			tr: null,
 			error: '',
-			ranges: [['live', 'En vivo'], ['1h', '1 hora'], ['6h', '6 horas'], ['24h', '24 horas'], ['7d', '7 días'], ['30d', '30 días'], ['365d', '1 año']],
+			ranges: [['live', HP.t('En vivo')], ['1h', HP.t('1 hora')], ['6h', HP.t('6 horas')], ['24h', HP.t('24 horas')], ['7d', HP.t('7 días')], ['30d', HP.t('30 días')], ['365d', HP.t('1 año')]],
 			async init() {
 				this.load();
 				this.loop();
@@ -805,16 +812,16 @@
 					const labels = isLive ? buf.labels : hlabels;
 					const fixed = isLive ? { animation: false } : {};
 					const defs = {
-						cpu: [[{ label: 'CPU promedio %', data: s.cpu, borderColor: '#1f6fd6' }, { label: isLive ? 'Núcleo más cargado %' : 'Pico de CPU % (muestras de 2 s)', data: s.cpu_max, borderColor: '#93c5fd', fill: false, borderDash: [4, 3] }], { hardMax: 100, fmt: (v) => Math.round(v) + '%' }],
-						mem: [[{ label: 'RAM %', data: s.mem, borderColor: '#e0569b' }, { label: 'Swap %', data: s.swap, borderColor: '#f59e0b', fill: false }], { hardMax: 100, fmt: (v) => Math.round(v) + '%' }],
-						load: [[{ label: '1 min', data: s.load1, borderColor: '#7c3aed' }, { label: '5 min', data: s.load5, borderColor: '#a78bfa', fill: false }, { label: '15 min', data: s.load15, borderColor: '#c4b5fd', fill: false }], { fmt: (v) => Number(v).toFixed(2) }],
-						net: [[{ label: 'Entrada', data: s.rx, borderColor: '#0ea5e9' }, { label: 'Salida', data: s.tx, borderColor: '#14945a' }], { fmt: HP.rate }],
-						io: [[{ label: 'Lectura', data: s.rd, borderColor: '#f97316' }, { label: 'Escritura', data: s.wr, borderColor: '#ef4444' }], { fmt: HP.rate }],
-						disk: [[{ label: 'Disco / %', data: s.disk, borderColor: '#14945a' }], { hardMax: 100, fmt: (v) => Math.round(v) + '%' }],
-						webreq: [[{ label: isLive ? 'Peticiones/s' : 'Peticiones/s (promedio)', data: s.req, borderColor: '#1f6fd6' }, { label: 'Conexiones nuevas/s', data: s.conn, borderColor: '#14945a', fill: false }].concat(isLive ? [] : [{ label: 'Pico de peticiones/s', data: s.req_max, borderColor: '#93c5fd', fill: false, borderDash: [4, 3] }]), { fmt: (v) => Number(v).toFixed(1) }],
-						codes: [[{ label: '2xx correctas', data: hs.s2, borderColor: '#14945a' }, { label: '3xx redirecciones', data: hs.s3, borderColor: '#0ea5e9', fill: false }, { label: '4xx no encontradas/denegadas', data: hs.s4, borderColor: '#e08a00', fill: false }, { label: '5xx errores del servidor', data: hs.s5, borderColor: '#d23f3f', fill: false }], { fmt: (v) => Math.round(v) }],
-						conns: [[{ label: 'Abiertas en nginx', data: s.active, borderColor: '#7c3aed' }, { label: 'TCP establecidas (todo el servidor)', data: s.tcp_est, borderColor: '#94a3b8', fill: false }, { label: 'TCP nuevas/s', data: s.tcp_new, borderColor: '#f97316', fill: false }], { fmt: (v) => Number(v).toFixed(1) }],
-						mysql: [[{ label: 'Consultas/s', data: s.db_qps, borderColor: '#0f8c8c' }, { label: 'Conexiones abiertas', data: s.db_conn, borderColor: '#e0569b', fill: false }], { fmt: (v) => Math.round(v) }],
+						cpu: [[{ label: HP.t('CPU promedio %'), data: s.cpu, borderColor: '#1f6fd6' }, { label: isLive ? HP.t('Núcleo más cargado %') : 'Pico de CPU % (muestras de 2 s)', data: s.cpu_max, borderColor: '#93c5fd', fill: false, borderDash: [4, 3] }], { hardMax: 100, fmt: (v) => Math.round(v) + '%' }],
+						mem: [[{ label: 'RAM %', data: s.mem, borderColor: '#e0569b' }, { label: HP.t('Swap %'), data: s.swap, borderColor: '#f59e0b', fill: false }], { hardMax: 100, fmt: (v) => Math.round(v) + '%' }],
+						load: [[{ label: HP.t('1 min'), data: s.load1, borderColor: '#7c3aed' }, { label: HP.t('5 min'), data: s.load5, borderColor: '#a78bfa', fill: false }, { label: HP.t('15 min'), data: s.load15, borderColor: '#c4b5fd', fill: false }], { fmt: (v) => Number(v).toFixed(2) }],
+						net: [[{ label: HP.t('Entrada'), data: s.rx, borderColor: '#0ea5e9' }, { label: HP.t('Salida'), data: s.tx, borderColor: '#14945a' }], { fmt: HP.rate }],
+						io: [[{ label: HP.t('Lectura'), data: s.rd, borderColor: '#f97316' }, { label: HP.t('Escritura'), data: s.wr, borderColor: '#ef4444' }], { fmt: HP.rate }],
+						disk: [[{ label: HP.t('Disco / %'), data: s.disk, borderColor: '#14945a' }], { hardMax: 100, fmt: (v) => Math.round(v) + '%' }],
+						webreq: [[{ label: isLive ? HP.t('Peticiones/s') : 'Peticiones/s (promedio)', data: s.req, borderColor: '#1f6fd6' }, { label: HP.t('Conexiones nuevas/s'), data: s.conn, borderColor: '#14945a', fill: false }].concat(isLive ? [] : [{ label: HP.t('Pico de peticiones/s'), data: s.req_max, borderColor: '#93c5fd', fill: false, borderDash: [4, 3] }]), { fmt: (v) => Number(v).toFixed(1) }],
+						codes: [[{ label: HP.t('2xx correctas'), data: hs.s2, borderColor: '#14945a' }, { label: HP.t('3xx redirecciones'), data: hs.s3, borderColor: '#0ea5e9', fill: false }, { label: HP.t('4xx no encontradas/denegadas'), data: hs.s4, borderColor: '#e08a00', fill: false }, { label: HP.t('5xx errores del servidor'), data: hs.s5, borderColor: '#d23f3f', fill: false }], { fmt: (v) => Math.round(v) }],
+						conns: [[{ label: HP.t('Abiertas en nginx'), data: s.active, borderColor: '#7c3aed' }, { label: 'TCP establecidas (todo el servidor)', data: s.tcp_est, borderColor: '#94a3b8', fill: false }, { label: HP.t('TCP nuevas/s'), data: s.tcp_new, borderColor: '#f97316', fill: false }], { fmt: (v) => Number(v).toFixed(1) }],
+						mysql: [[{ label: HP.t('Consultas/s'), data: s.db_qps, borderColor: '#0f8c8c' }, { label: HP.t('Conexiones abiertas'), data: s.db_conn, borderColor: '#e0569b', fill: false }], { fmt: (v) => Math.round(v) }],
 					};
 					last = { defs, labels, hlabels, hs, isLive };
 					for (const [k, [ds, opts]] of Object.entries(defs)) {
@@ -823,7 +830,7 @@
 						const own = k === 'codes' ? hlabels : labels;
 						if (this.$refs[k]) charts[k] = await HP.lineChart(this.$refs[k], own, ds, Object.assign({}, opts, k === 'codes' ? {} : fixed));
 					}
-					this.error = isLive || hs.ts.length ? '' : 'Aún no hay datos para este periodo: las métricas se recogen cada minuto.';
+					this.error = isLive || hs.ts.length ? '' : HP.t('Aún no hay datos para este periodo: las métricas se recogen cada minuto.');
 					this.loadTraffic();
 				} catch (e) {
 					this.error = e.message;
@@ -831,7 +838,7 @@
 			},
 			exporting: false,
 			rangeName() {
-				return (this.ranges.find((r) => r[0] === this.range) || [0, this.range])[1] + (this.range === 'live' ? ' (últimos 5 minutos)' : '');
+				return (this.ranges.find((r) => r[0] === this.range) || [0, this.range])[1] + (this.range === 'live' ? ' ' + HP.t('(últimos 5 minutos)') : '');
 			},
 			fileName(ext) {
 				const d = new Date();
@@ -849,10 +856,10 @@
 			},
 			// Informe autocontenido: resumen, gráficos interactivos (datos + dibujador SVG incrustado) y tablas
 			async buildReport() {
-				if (!last) throw new Error('Los gráficos aún se están cargando');
+				if (!last) throw new Error(HP.t('Los gráficos aún se están cargando'));
 				const esc = HP.esc;
-				const titles = { cpu: 'CPU', mem: 'Memoria', load: 'Carga media', net: 'Red', io: 'Lectura / escritura de disco', disk: 'Ocupación del disco',
-					webreq: 'Peticiones y conexiones por segundo', codes: 'Respuestas por minuto según código', conns: 'Conexiones abiertas', mysql: 'MySQL / MariaDB' };
+				const titles = { cpu: 'CPU', mem: HP.t('Memoria'), load: HP.t('Carga media'), net: HP.t('Red'), io: HP.t('Lectura / escritura de disco'), disk: HP.t('Ocupación del disco'),
+					webreq: HP.t('Peticiones y conexiones por segundo'), codes: HP.t('Respuestas por minuto según código'), conns: HP.t('Conexiones abiertas'), mysql: HP.t('MySQL / MariaDB') };
 				const ftypes = { cpu: 'pct', mem: 'pct', disk: 'pct', load: 'fixed2', net: 'rate', io: 'rate', webreq: 'num1', conns: 'num1', codes: 'int', mysql: 'int' };
 				const full = (t) => new Date(t * 1000).toLocaleString([], { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 				const histTips = (last.hs.ts || []).map(full);
@@ -870,7 +877,7 @@
 				const stat = (arr, f = (v) => v) => {
 					const v = (arr || []).filter((x) => x != null);
 					if (!v.length) return '—';
-					return 'prom. ' + f(v.reduce((a, b) => a + b, 0) / v.length) + ' · máx. ' + f(Math.max(...v));
+					return HP.t('prom. %s · máx. %s', f(v.reduce((a, b) => a + b, 0) / v.length), f(Math.max(...v)));
 				};
 				const src = last.isLive ? buf : last.hs;
 				const l = this.live || {};
@@ -878,18 +885,18 @@
 				const pct = (v) => Math.round(v) + '%';
 				const n1 = (v) => Number(v).toFixed(1);
 				const rows = [
-					['Servidor', esc(l.hostname || '')], ['Sistema', esc(l.os || '') + ' · kernel ' + esc(l.kernel || '')],
-					['Procesador', esc(l.cpu_model || '') + ' · ' + (l.cores || '?') + ' núcleos'], ['Hestia', 'v' + esc(l.hestia_version || '') + ' + Pro'],
-					['Encendido', HP.duration(l.uptime || 0)],
-					['Memoria ahora', l.mem ? HP.bytes(l.mem.used) + ' de ' + HP.bytes(l.mem.total) + ' (' + l.mem.percent + '%)' : '—'],
-					['Disco / ahora', root.total ? HP.bytes(root.used) + ' de ' + HP.bytes(root.total) + ' (' + root.percent + '%)' : '—'],
+					[HP.t('Servidor'), esc(l.hostname || '')], [HP.t('Sistema'), esc(l.os || '') + ' · kernel ' + esc(l.kernel || '')],
+					[HP.t('Procesador'), esc(l.cpu_model || '') + ' · ' + HP.t('%s núcleos', l.cores || '?')], ['Hestia', 'v' + esc(l.hestia_version || '') + HP.t(' + Pro')],
+					[HP.t('Encendido'), HP.duration(l.uptime || 0)],
+					[HP.t('Memoria ahora'), l.mem ? HP.t('%s de %s', HP.bytes(l.mem.used), HP.bytes(l.mem.total)) + ' (' + l.mem.percent + '%)' : '—'],
+					[HP.t('Disco / ahora'), root.total ? HP.t('%s de %s', HP.bytes(root.used), HP.bytes(root.total)) + ' (' + root.percent + '%)' : '—'],
 				];
 				if (src) {
-					rows.push(['CPU en el periodo', stat(src.cpu, pct)], ['RAM en el periodo', stat(src.mem, pct)], ['Carga (1 min)', stat(src.load1, (v) => v.toFixed(2))],
-						['Peticiones/s', stat(src.req, n1)], ['Consultas MySQL/s', stat(src.db_qps, Math.round)]);
+					rows.push([HP.t('CPU en el periodo'), stat(src.cpu, pct)], [HP.t('RAM en el periodo'), stat(src.mem, pct)], ['Carga (1 min)', stat(src.load1, (v) => v.toFixed(2))],
+						[HP.t('Peticiones/s'), stat(src.req, n1)], [HP.t('Consultas MySQL/s'), stat(src.db_qps, Math.round)]);
 				}
 				const table = (head, body) => '<table><thead><tr>' + head.map((h, i) => `<th${i ? ' class="r"' : ''}>${h}</th>`).join('') + '</tr></thead><tbody>' +
-					(body.length ? body.map((r) => '<tr>' + r.map((c, i) => `<td${i ? ' class="r"' : ''}>${c}</td>`).join('') + '</tr>').join('') : `<tr><td colspan="${head.length}" class="muted">Sin datos en este periodo</td></tr>`) + '</tbody></table>';
+					(body.length ? body.map((r) => '<tr>' + r.map((c, i) => `<td${i ? ' class="r"' : ''}>${c}</td>`).join('') + '</tr>').join('') : `<tr><td colspan="${head.length}" class="muted">${HP.t('Sin datos en este periodo')}</td></tr>`) + '</tbody></table>';
 				const t = this.tr;
 				const pc = (a, b) => (b ? Math.round((a * 100) / b) + '%' : '—');
 				const traffic = t ? `
@@ -903,7 +910,7 @@
 					<h3>Páginas más visitadas</h3>${table(['URL', 'Peticiones'], t.urls.map((u) => [esc(u.domain) + '<code>' + esc(u.path) + '</code>', u.req.toLocaleString()]))}
 					<h3>URLs con errores</h3>${table(['URL', '404', '5xx'], t.errors.map((u) => [esc(u.domain) + '<code>' + esc(u.path) + '</code>', u.e404, u.e5]))}
 					<h3>IPs con más peticiones</h3>${table(['IP', 'Peticiones', 'Con error'], t.ips.map((i) => [esc(i.ip), i.req.toLocaleString(), pc(i.err, i.req)]))}
-					<h3>IPs sospechosas</h3>${table(['IP', 'Peticiones', 'Con error'], t.suspects.map((i) => [esc(i.ip), i.req.toLocaleString(), pc(i.err, i.req)]))}` : '<p class="muted">Sin datos de tráfico.</p>';
+					<h3>IPs sospechosas</h3>${table(['IP', 'Peticiones', 'Con error'], t.suspects.map((i) => [esc(i.ip), i.req.toLocaleString(), pc(i.err, i.req)]))}` : '<p class="muted">' + HP.t('Sin datos de tráfico.') + '</p>';
 				const chartBlock = (keys) => keys.filter((k) => charts[k]).map((k) => `<figure><figcaption>${titles[k]}${k === 'codes' && last.isLive ? ' (última hora)' : ''}</figcaption><div class="chart" data-chart="${k}"></div></figure>`).join('');
 				const json = JSON.stringify(charts).replace(/</g, '\\u003c');
 				const script = '<scr' + 'ipt>window.HP_CHARTS=' + json + ';(' + HP.reportCharts.toString() + ')();</scr' + 'ipt>';
@@ -959,7 +966,7 @@
 				this.exporting = true;
 				try {
 					this.download(this.fileName('html'), await this.buildReport(), 'text/html;charset=utf-8');
-					HP.toast('Informe HTML descargado');
+					HP.toast(HP.t('Informe HTML descargado'));
 				} catch (e) {
 					HP.toast(e.message, 'error');
 				}
@@ -968,8 +975,8 @@
 			async exportPdf() {
 				// la ventana se abre ya (dentro del clic) para que el navegador no la bloquee
 				const w = window.open('', '_blank');
-				if (!w) return HP.toast('El navegador bloqueó la ventana: permite ventanas emergentes para este panel', 'error');
-				w.document.write('<p style="font-family:sans-serif;padding:30px">Generando informe…</p>');
+				if (!w) return HP.toast(HP.t('El navegador bloqueó la ventana: permite ventanas emergentes para este panel'), 'error');
+				w.document.write('<p style="font-family:sans-serif;padding:30px">' + HP.t('Generando informe…') + '</p>');
 				this.exporting = true;
 				try {
 					const html = await this.buildReport();
@@ -996,7 +1003,7 @@
 				const lines = [['fecha'].concat(keys.map((k) => names[k] || k)).join(';')];
 				times.forEach((t, i) => lines.push([t].concat(keys.map((k) => (src[k] && src[k][i] != null ? String(src[k][i]).replace('.', ',') : ''))).join(';')));
 				this.download(this.fileName('csv'), '﻿' + lines.join('\r\n'), 'text/csv;charset=utf-8');
-				HP.toast('Datos CSV descargados');
+				HP.toast(HP.t('Datos CSV descargados'));
 			},
 			fmt: HP,
 			};
@@ -1076,9 +1083,9 @@
 					const c = (data && data.countries[cc]) || null;
 					const l = data && data.live[cc];
 					return '<b>' + HP.esc(HP.countryName(cc)) + '</b>' +
-						(c ? '<div>' + c.req.toLocaleString() + ' peticiones · ' + c.ips + ' IPs</div>' + (c.err ? '<div>' + Math.round((c.err * 100) / c.req) + '% con error</div>' : '') : '<div class="hp-muted">Sin visitas en el periodo</div>') +
-						(l ? '<div>Ahora: ' + l.conns + ' conexiones</div>' : '') +
-						(data && data.blocked.server.includes(cc) ? '<div class="hp-map-tip-bad">Bloqueado en todo el servidor</div>' : '');
+						(c ? '<div>' + HP.t('%s peticiones · %s IPs', c.req.toLocaleString(), c.ips) + '</div>' + (c.err ? '<div>' + HP.t('%s% con error', Math.round((c.err * 100) / c.req)) + '</div>' : '') : '<div class="hp-muted">' + HP.t('Sin visitas en el periodo') + '</div>') +
+						(l ? '<div>' + HP.t('Ahora: %s conexiones', l.conns) + '</div>' : '') +
+						(data && data.blocked.server.includes(cc) ? '<div class="hp-map-tip-bad">' + HP.t('Bloqueado en todo el servidor') + '</div>' : '');
 				},
 				share(n) {
 					return this.total ? Math.max(1, Math.round((n * 100) / this.total)) : 0;
@@ -1096,25 +1103,25 @@
 		// Explorador de registros de acceso y de errores (ventana de pages/logs_modal.php)
 		Alpine.data('hpLogs', (isAdmin = false) => {
 			const CODES = {
-				200: 'Correcta', 201: 'Creado', 204: 'Correcta, sin contenido', 206: 'Contenido parcial (descargas, vídeo)',
-				301: 'Redirección permanente', 302: 'Redirección temporal', 303: 'Redirección tras enviar un formulario', 304: 'Sin cambios (el navegador usa su caché)',
-				307: 'Redirección temporal', 308: 'Redirección permanente',
-				400: 'Petición mal formada', 401: 'Requiere iniciar sesión', 403: 'Prohibido (permisos o regla de seguridad)', 404: 'No existe esa página o archivo',
-				405: 'Método no permitido', 408: 'El visitante tardó demasiado', 413: 'Archivo o envío demasiado grande', 414: 'URL demasiado larga',
-				429: 'Demasiadas peticiones (límite)', 444: 'Conexión cerrada por nginx', 499: 'El visitante cerró antes de recibir la respuesta',
-				500: 'Error interno de la aplicación', 502: 'La aplicación (PHP/Node/Python) no respondió', 503: 'Servicio no disponible',
-				504: 'La aplicación tardó demasiado en responder',
+				200: HP.t('Correcta'), 201: HP.t('Creado'), 204: HP.t('Correcta, sin contenido'), 206: HP.t('Contenido parcial (descargas, vídeo)'),
+				301: HP.t('Redirección permanente'), 302: HP.t('Redirección temporal'), 303: HP.t('Redirección tras enviar un formulario'), 304: HP.t('Sin cambios (el navegador usa su caché)'),
+				307: HP.t('Redirección temporal'), 308: HP.t('Redirección permanente'),
+				400: HP.t('Petición mal formada'), 401: HP.t('Requiere iniciar sesión'), 403: 'Prohibido (permisos o regla de seguridad)', 404: HP.t('No existe esa página o archivo'),
+				405: HP.t('Método no permitido'), 408: HP.t('El visitante tardó demasiado'), 413: HP.t('Archivo o envío demasiado grande'), 414: HP.t('URL demasiado larga'),
+				429: HP.t('Demasiadas peticiones (límite)'), 444: HP.t('Conexión cerrada por nginx'), 499: HP.t('El visitante cerró antes de recibir la respuesta'),
+				500: HP.t('Error interno de la aplicación'), 502: HP.t('La aplicación (PHP/Node/Python) no respondió'), 503: HP.t('Servicio no disponible'),
+				504: HP.t('La aplicación tardó demasiado en responder'),
 			};
-			const CLASS = { 2: 'Correcta', 3: 'Redirección', 4: 'Error del visitante', 5: 'Fallo del servidor' };
+			const CLASS = { 2: HP.t('Correcta'), 3: HP.t('Redirección'), 4: HP.t('Error del visitante'), 5: HP.t('Fallo del servidor') };
 			const TIPS = {
-				404: '<b>404</b>: piden algo que no existe. Si son rutas como <span class="hp-mono">/.env</span>, <span class="hp-mono">/.git/config</span> o <span class="hp-mono">/wp-login.php</span> en un sitio sin WordPress, son <b>escáneres automáticos</b> buscando fallos: no hacen daño si esos archivos no existen. Si es una página real (o <span class="hp-mono">/favicon.ico</span>), revisa el enlace o sube el archivo.',
-				403: '<b>403</b>: el servidor negó el acceso (permisos de archivos, carpetas sin índice o una regla de seguridad).',
-				499: '<b>499</b>: el visitante cerró o cambió de página antes de recibir la respuesta. Muchos seguidos indican páginas lentas.',
-				500: '<b>500</b>: la aplicación falló. Mira la pestaña <b>Errores del servidor</b> a la misma hora para ver el mensaje de PHP.',
-				502: '<b>502</b>: nginx no pudo hablar con PHP-FPM o con la aplicación (caída o reiniciándose). Revisa <b>Errores del servidor</b>.',
-				504: '<b>504</b>: la aplicación tardó demasiado. Suele ser una consulta lenta a la base de datos o un proceso pesado.',
-				'5xx': '<b>5xx</b>: fallos del servidor o de la aplicación. Compara la hora con la pestaña <b>Errores del servidor</b>.',
-				err: 'Pulsa un código para ver solo ese tipo de error, o una fila para ver todos sus detalles (de dónde viene, navegador, etc.).',
+				404: HP.t('<b>404</b>: piden algo que no existe. Si son rutas como <span class="hp-mono">/.env</span>, <span class="hp-mono">/.git/config</span> o <span class="hp-mono">/wp-login.php</span> en un sitio sin WordPress, son <b>escáneres automáticos</b> buscando fallos: no hacen daño si esos archivos no existen. Si es una página real (o <span class="hp-mono">/favicon.ico</span>), revisa el enlace o sube el archivo.'),
+				403: HP.t('<b>403</b>: el servidor negó el acceso (permisos de archivos, carpetas sin índice o una regla de seguridad).'),
+				499: HP.t('<b>499</b>: el visitante cerró o cambió de página antes de recibir la respuesta. Muchos seguidos indican páginas lentas.'),
+				500: HP.t('<b>500</b>: la aplicación falló. Mira la pestaña <b>Errores del servidor</b> a la misma hora para ver el mensaje de PHP.'),
+				502: HP.t('<b>502</b>: nginx no pudo hablar con PHP-FPM o con la aplicación (caída o reiniciándose). Revisa <b>Errores del servidor</b>.'),
+				504: HP.t('<b>504</b>: la aplicación tardó demasiado. Suele ser una consulta lenta a la base de datos o un proceso pesado.'),
+				'5xx': HP.t('<b>5xx</b>: fallos del servidor o de la aplicación. Compara la hora con la pestaña <b>Errores del servidor</b>.'),
+				err: HP.t('Pulsa un código para ver solo ese tipo de error, o una fila para ver todos sus detalles (de dónde viene, navegador, etc.).'),
 			};
 			let seq = 0; // descarta respuestas viejas si se cambia el filtro rápido
 			return {
@@ -1196,11 +1203,11 @@
 				},
 				// Bloqueo rápido de una IP (en este sitio o en todo el servidor)
 				async block(ip, scope) {
-					const where = scope === 'site' ? this.f.domain : 'todo el servidor';
-					if (!(await HP.confirm('¿Bloquear ' + ip + ' en ' + where + '?', { ok: 'Bloquear', danger: true }))) return;
+					const where = scope === 'site' ? this.f.domain : HP.t('todo el servidor');
+					if (!(await HP.confirm(HP.t('¿Bloquear %s en %s?', ip, where), { ok: HP.t('Bloquear'), danger: true }))) return;
 					try {
 						await HP.api('geo-block', { kind: 'ip', value: ip, scope, domain: this.f.domain });
-						HP.toast(ip + ' bloqueada en ' + where);
+						HP.toast(HP.t('%s bloqueada en %s', ip, where));
 					} catch (e) {
 						HP.toast(e.message, 'error');
 					}
@@ -1281,9 +1288,9 @@
 				try {
 					const r = await HP.api('app-save', { user: this.user, domain: this.domain, app: this.payload() });
 					if (r.job) {
-						await HP.job(r.job, 'Aplicando la aplicación de ' + this.domain, { autoClose: true }).catch(() => {});
+						await HP.job(r.job, HP.t('Aplicando la aplicación de %s', this.domain), { autoClose: true }).catch(() => {});
 					}
-					HP.toast(r.sample_created ? 'Aplicación creada con un ejemplo funcionando' : 'Aplicación guardada');
+					HP.toast(r.sample_created ? HP.t('Aplicación creada con un ejemplo funcionando') : HP.t('Aplicación guardada'));
 					await this.reload();
 				} catch (e) {
 					HP.toast(e.message, 'error');
@@ -1293,17 +1300,17 @@
 			async act(what) {
 				try {
 					await HP.api('app-action', { user: this.user, domain: this.domain, what });
-					HP.toast({ start: 'Iniciada', stop: 'Detenida', restart: 'Reiniciada', enable: 'Habilitada', disable: 'Deshabilitada' }[what] || 'Hecho');
+					HP.toast({ start: HP.t('Iniciada'), stop: HP.t('Detenida'), restart: HP.t('Reiniciada'), enable: HP.t('Habilitada'), disable: HP.t('Deshabilitada') }[what] || HP.t('Hecho'));
 					await this.reload();
 				} catch (e) {
 					HP.toast(e.message, 'error');
 				}
 			},
 			async remove() {
-				if (!(await HP.confirm('Se quitará la aplicación de ' + this.domain + ' y el dominio volverá a su plantilla anterior. Los archivos NO se borran.', { title: 'Quitar aplicación', ok: 'Quitar', danger: true }))) return;
+				if (!(await HP.confirm(HP.t('Se quitará la aplicación de %s y el dominio volverá a su plantilla anterior. Los archivos NO se borran.', this.domain), { title: HP.t('Quitar aplicación'), ok: HP.t('Quitar'), danger: true }))) return;
 				try {
 					await HP.api('app-delete', { user: this.user, domain: this.domain });
-					HP.toast('Aplicación quitada');
+					HP.toast(HP.t('Aplicación quitada'));
 					this.app = null;
 					location.reload();
 				} catch (e) {
@@ -1326,13 +1333,13 @@
 				}
 			},
 			logs() {
-				HP.logs('Registros de ' + this.domain, () => HP.api('app-logs', { user: this.user, domain: this.domain, lines: 400 }));
+				HP.logs(HP.t('Registros de %s', this.domain), () => HP.api('app-logs', { user: this.user, domain: this.domain, lines: 400 }));
 			},
 			mem(b) {
 				return b ? HP.bytes(b) : '—';
 			},
 			stateLabel(s) {
-				return { running: 'En marcha', starting: 'Iniciando', stopped: 'Detenida', disabled: 'Deshabilitada', failed: 'Con error', missing: 'Sin contenedor' }[s] || s || '—';
+				return { running: HP.t('En marcha'), starting: HP.t('Iniciando'), stopped: HP.t('Detenida'), disabled: HP.t('Deshabilitada'), failed: HP.t('Con error'), missing: HP.t('Sin contenedor') }[s] || s || '—';
 			},
 			stateClass(s) {
 				return { running: 'hp-badge-ok', starting: 'hp-badge-warn', failed: 'hp-badge-danger', missing: 'hp-badge-danger' }[s] || 'hp-badge-muted';
@@ -1360,24 +1367,24 @@
 			async save() {
 				try {
 					this.git = await HP.api('git-save', { user: this.user, domain: this.domain, git: this.form });
-					HP.toast('Repositorio guardado');
+					HP.toast(HP.t('Repositorio guardado'));
 				} catch (e) {
 					HP.toast(e.message, 'error');
 				}
 			},
 			async deploy() {
 				try {
-					await HP.runJob('git-deploy', { user: this.user, domain: this.domain }, 'Desplegando ' + this.domain);
+					await HP.runJob('git-deploy', { user: this.user, domain: this.domain }, HP.t('Desplegando %s', this.domain));
 					this.git = await HP.api('git-get', { user: this.user, domain: this.domain });
 				} catch (e) {
 					HP.toast(e.message, 'error');
 				}
 			},
 			async remove() {
-				if (!(await HP.confirm('¿Desvincular el repositorio? Los archivos desplegados se conservan.', { danger: true, ok: 'Desvincular' }))) return;
+				if (!(await HP.confirm(HP.t('¿Desvincular el repositorio? Los archivos desplegados se conservan.'), { danger: true, ok: HP.t('Desvincular') }))) return;
 				await HP.api('git-delete', { user: this.user, domain: this.domain });
 				this.git = null;
-				HP.toast('Repositorio desvinculado');
+				HP.toast(HP.t('Repositorio desvinculado'));
 			},
 			async showKey() {
 				try {

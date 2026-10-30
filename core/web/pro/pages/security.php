@@ -1,10 +1,10 @@
 <?php
-hp_page_header("Seguridad y países", "De dónde llegan las visitas y quién puede entrar: por país o por IP, en cada sitio web y en los accesos de administración (SSH, panel, FTP).");
+hp_page_header(__('Seguridad y países'), __('De dónde llegan las visitas y quién puede entrar: por país o por IP, en cada sitio web y en los accesos de administración (SSH, panel, FTP).'));
 // Selector de países reutilizable: x-model apunta a la lista del componente padre
-$hp_cc_picker = function (string $model, string $placeholder = "Escribe un país…") { ?>
+$hp_cc_picker = function (string $model, ?string $placeholder = null) { $placeholder ??= __('Escribe un país…'); ?>
 	<div class="hp-cc-picker" x-data="hpCountries" x-modelable="value" x-model="<?= $model ?>" x-on:click.outside="open = false" x-on:click="$refs.q.focus()">
 		<template x-for="cc in value" :key="cc">
-			<span class="hp-cc-chip"><b x-text="cc"></b><span x-text="HP.countryName(cc)"></span><button type="button" x-on:click.stop="remove(cc)" :title="'Quitar ' + HP.countryName(cc)">&times;</button></span>
+			<span class="hp-cc-chip"><b x-text="cc"></b><span x-text="HP.countryName(cc)"></span><button type="button" x-on:click.stop="remove(cc)" :title="HP.t('Quitar ') + HP.countryName(cc)">&times;</button></span>
 		</template>
 		<input class="hp-cc-input" x-ref="q" x-model="q" x-on:focus="open = true" x-on:input="open = true; hi = 0" x-on:keydown="key($event)" placeholder="<?= e($placeholder) ?>">
 		<div class="hp-cc-menu" x-show="open && options.length" x-cloak>
@@ -20,9 +20,8 @@ $hp_cc_picker = function (string $model, string $placeholder = "Escribe un país
 	<template x-if="left > 0">
 		<div class="hp-pending">
 			<i class="fas fa-hourglass-half"></i>
-			<div><b>Comprueba que sigues pudiendo entrar</b> (abre una sesión SSH nueva o recarga el panel en otra pestaña).
-				Si no confirmas, el cambio se deshace solo en <b x-text="mmss(left)"></b>.</div>
-			<button type="button" class="hp-btn hp-btn-primary" x-on:click="confirmFw()"><i class="fas fa-check"></i>Todo funciona, confirmar</button>
+			<div><b><?= __e('Comprueba que sigues pudiendo entrar') ?></b> <?= __e('(abre una sesión SSH nueva o recarga el panel en otra pestaña). Si no confirmas, el cambio se deshace solo en') ?> <b x-text="mmss(left)"></b>.</div>
+			<button type="button" class="hp-btn hp-btn-primary" x-on:click="confirmFw()"><i class="fas fa-check"></i><?= __e('Todo funciona, confirmar') ?></button>
 		</div>
 	</template>
 
@@ -31,20 +30,20 @@ $hp_cc_picker = function (string $model, string $placeholder = "Escribe un país
 			<div class="hp-card-body hp-flex hp-wrap" style="gap:18px">
 				<span class="hp-chip hp-chip-lg" style="background:linear-gradient(135deg,#1f6fd6,#14945a)"><i class="fas fa-earth-americas"></i></span>
 				<div style="flex:1;min-width:260px">
-					<h2 style="margin:0 0 4px;color:var(--hp-text);font-size:1.05rem">Activar el acceso por país</h2>
-					<p class="hp-muted" style="margin:0">Descarga la base gratuita de países de DB-IP (se actualiza sola cada mes) e instala <span class="hp-mono">ipset</span> para el cortafuegos. No bloquea nada por sí solo: las reglas las decides tú.</p>
+					<h2 style="margin:0 0 4px;color:var(--hp-text);font-size:1.05rem"><?= __e('Activar el acceso por país') ?></h2>
+					<p class="hp-muted" style="margin:0"><?= __e('Descarga la base gratuita de países de DB-IP (se actualiza sola cada mes) e instala') ?> <span class="hp-mono">ipset</span> <?= __e('para el cortafuegos. No bloquea nada por sí solo: las reglas las decides tú.') ?></p>
 				</div>
-				<button type="button" class="hp-btn hp-btn-primary" x-on:click="install()"><i class="fas fa-power-off"></i>Activar</button>
+				<button type="button" class="hp-btn hp-btn-primary" x-on:click="install()"><i class="fas fa-power-off"></i><?= __e('Activar') ?></button>
 			</div>
 		</div>
 	</template>
 
 	<div class="hp-tabs">
-		<button class="hp-tab" :class="tab === 'map' && 'active'" x-on:click="go('map')"><i class="fas fa-earth-americas"></i>Mapa de visitas</button>
-		<button class="hp-tab" :class="tab === 'sites' && 'active'" x-on:click="go('sites')"><i class="fas fa-globe"></i>Sitios web</button>
-		<button class="hp-tab" :class="tab === 'admin' && 'active'" x-on:click="go('admin')"><i class="fas fa-user-shield"></i>Acceso de administración
+		<button class="hp-tab" :class="tab === 'map' && 'active'" x-on:click="go('map')"><i class="fas fa-earth-americas"></i><?= __e('Mapa de visitas') ?></button>
+		<button class="hp-tab" :class="tab === 'sites' && 'active'" x-on:click="go('sites')"><i class="fas fa-globe"></i><?= __e('Sitios web') ?></button>
+		<button class="hp-tab" :class="tab === 'admin' && 'active'" x-on:click="go('admin')"><i class="fas fa-user-shield"></i><?= __e('Acceso de administración') ?>
 			<span class="hp-badge hp-badge-ok" x-show="v && v.admin.enabled" x-cloak>activo</span></button>
-		<button class="hp-tab" :class="tab === 'server' && 'active'" x-on:click="go('server')"><i class="fas fa-ban"></i>Bloqueo en todo el servidor
+		<button class="hp-tab" :class="tab === 'server' && 'active'" x-on:click="go('server')"><i class="fas fa-ban"></i><?= __e('Bloqueo en todo el servidor') ?>
 			<span class="hp-badge hp-badge-danger" x-show="v && (v.server.countries.length || v.server.ips.length)" x-cloak x-text="v ? v.server.countries.length + v.server.ips.length : ''"></span></button>
 	</div>
 
@@ -61,64 +60,64 @@ $hp_cc_picker = function (string $model, string $placeholder = "Escribe un país
 					<button type="button" :class="range === r[0] && 'active'" x-on:click="range = r[0]; loadMap()" x-text="r[1]"></button>
 				</template>
 			</div>
-			<span class="hp-badge hp-badge-ok" x-show="metric === 'live'" x-cloak><span class="hp-live-dot on" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#e5484d;margin-right:4px"></span>Conexiones abiertas ahora · cada 5 s</span>
+			<span class="hp-badge hp-badge-ok" x-show="metric === 'live'" x-cloak><span class="hp-live-dot on" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#e5484d;margin-right:4px"></span><?= __e('Conexiones abiertas ahora · cada 5 s') ?></span>
 		</div>
 		<div class="hp-geo-layout">
 			<div class="hp-card">
 				<div class="hp-card-body" style="padding:10px">
 					<div x-ref="map" class="hp-map-box"></div>
 					<div class="hp-between hp-small hp-muted hp-wrap" style="margin-top:8px">
-						<div class="hp-flex"><span>Menos</span><span class="hp-map-scale"></span><span>Más</span>
-							<span class="hp-map-key-blocked"></span><span>Bloqueado en todo el servidor</span>
-							<span class="hp-map-key-dot"></span><span>Conectados ahora</span></div>
-						<span>Ctrl + rueda o botones para acercar · arrastra para moverte · clic en un país para ver el detalle</span>
+						<div class="hp-flex"><span><?= __e('Menos') ?></span><span class="hp-map-scale"></span><span><?= __e('Más') ?></span>
+							<span class="hp-map-key-blocked"></span><span><?= __e('Bloqueado en todo el servidor') ?></span>
+							<span class="hp-map-key-dot"></span><span><?= __e('Conectados ahora') ?></span></div>
+						<span><?= __e('Ctrl + rueda o botones para acercar · arrastra para moverte · clic en un país para ver el detalle') ?></span>
 					</div>
 				</div>
 			</div>
 			<div class="hp-card">
 				<template x-if="!sel">
 					<div class="hp-card-body">
-						<h3 class="hp-geo-h">Países con más <span x-text="metricLabel()"></span></h3>
+						<h3 class="hp-geo-h"><?= __e('Países con más') ?> <span x-text="metricLabel()"></span></h3>
 						<template x-for="c in ranking().slice(0, 12)" :key="c.cc">
 							<button type="button" class="hp-geo-row" x-on:click="pick(c.cc)">
 								<span class="hp-cc-code" x-text="c.cc === '--' ? '?' : c.cc"></span><span class="hp-geo-name" x-text="HP.countryName(c.cc)"></span>
 								<span class="hp-geo-bar"><i :style="'width:' + c.pct + '%'"></i></span><b x-text="num(c.v)"></b>
 							</button>
 						</template>
-						<p class="hp-muted hp-small" x-show="md && !ranking().length">Sin datos en este periodo todavía.</p>
+						<p class="hp-muted hp-small" x-show="md && !ranking().length"><?= __e('Sin datos en este periodo todavía.') ?></p>
 					</div>
 				</template>
 				<template x-if="sel">
 					<div class="hp-card-body">
 						<div class="hp-between"><h3 class="hp-geo-h" style="margin:0"><span class="hp-cc-code" x-text="sel"></span> <span x-text="HP.countryName(sel)"></span></h3>
-							<button type="button" class="hp-icon-btn" x-on:click="pick(null)" title="Cerrar"><i class="fas fa-xmark"></i></button></div>
+							<button type="button" class="hp-icon-btn" x-on:click="pick(null)" title="<?= __e('Cerrar') ?>"><i class="fas fa-xmark"></i></button></div>
 						<div class="hp-geo-stats">
 							<div><b x-text="num(info().req)"></b><span>peticiones</span></div>
-							<div><b x-text="num(info().ips)"></b><span>IPs distintas</span></div>
-							<div><b x-text="info().req ? pct(info().err, info().req) : '—'"></b><span>con error</span></div>
-							<div><b x-text="num(info().conns)"></b><span>conectados ahora</span></div>
+							<div><b x-text="num(info().ips)"></b><span><?= __e('IPs distintas') ?></span></div>
+							<div><b x-text="info().req ? pct(info().err, info().req) : '—'"></b><span><?= __e('con error') ?></span></div>
+							<div><b x-text="num(info().conns)"></b><span><?= __e('conectados ahora') ?></span></div>
 							<div x-show="info().blk"><b x-text="num(info().blk)"></b><span>bloqueadas (451)</span></div>
-							<div x-show="info().fw"><b x-text="num(info().fw)"></b><span>paquetes descartados</span></div>
+							<div x-show="info().fw"><b x-text="num(info().fw)"></b><span><?= __e('paquetes descartados') ?></span></div>
 						</div>
-						<p class="hp-small" x-show="blockedWhere(sel).length" style="color:var(--hp-danger)"><i class="fas fa-ban"></i> Bloqueado en: <span x-text="blockedWhere(sel).join(', ')"></span></p>
+						<p class="hp-small" x-show="blockedWhere(sel).length" style="color:var(--hp-danger)"><i class="fas fa-ban"></i> <?= __e('Bloqueado en:') ?> <span x-text="blockedWhere(sel).join(', ')"></span></p>
 						<template x-if="info().top.length">
 							<div>
-								<div class="hp-small hp-muted" style="margin:10px 0 4px">IPs que más piden · clic para ver sus peticiones</div>
+								<div class="hp-small hp-muted" style="margin:10px 0 4px"><?= __e('IPs que más piden · clic para ver sus peticiones') ?></div>
 								<template x-for="i in info().top" :key="i.ip">
 									<button type="button" class="hp-geo-row" x-on:click="logs({ ip: i.ip })"><span class="hp-mono hp-geo-name" x-text="i.ip"></span><span class="hp-small hp-muted" x-show="i.err" x-text="pct(i.err, i.req) + ' error'"></span><b x-text="num(i.req)"></b></button>
 								</template>
 							</div>
 						</template>
 						<div class="hp-geo-actions">
-							<button type="button" class="hp-btn" x-on:click="logs({})"><i class="fas fa-file-lines"></i>Ver sus peticiones</button>
+							<button type="button" class="hp-btn" x-on:click="logs({})"><i class="fas fa-file-lines"></i><?= __e('Ver sus peticiones') ?></button>
 							<template x-if="sel !== 'LO' && sel !== '--'">
 								<div class="hp-flex hp-wrap">
-									<button type="button" class="hp-btn hp-btn-danger" x-show="!v.server.countries.includes(sel)" x-on:click="blockCountry('server')"><i class="fas fa-ban"></i>Bloquear en todo el servidor</button>
-									<button type="button" class="hp-btn" x-show="v.server.countries.includes(sel)" x-on:click="unblockServer(sel)"><i class="fas fa-unlock"></i>Quitar el bloqueo del servidor</button>
+									<button type="button" class="hp-btn hp-btn-danger" x-show="!v.server.countries.includes(sel)" x-on:click="blockCountry('server')"><i class="fas fa-ban"></i><?= __e('Bloquear en todo el servidor') ?></button>
+									<button type="button" class="hp-btn" x-show="v.server.countries.includes(sel)" x-on:click="unblockServer(sel)"><i class="fas fa-unlock"></i><?= __e('Quitar el bloqueo del servidor') ?></button>
 									<div class="hp-flex">
-										<select class="hp-select" x-model="blockDomain" style="max-width:220px"><option value="">Bloquear en un sitio…</option>
+										<select class="hp-select" x-model="blockDomain" style="max-width:220px"><option value=""><?= __e('Bloquear en un sitio…') ?></option>
 											<template x-for="s in v.sites" :key="s.domain"><option :value="s.domain" x-text="s.domain"></option></template></select>
-										<button type="button" class="hp-btn" :disabled="!blockDomain" x-on:click="blockCountry('site')">Bloquear</button>
+										<button type="button" class="hp-btn" :disabled="!blockDomain" x-on:click="blockCountry('site')"><?= __e('Bloquear') ?></button>
 									</div>
 								</div>
 							</template>
@@ -127,36 +126,35 @@ $hp_cc_picker = function (string $model, string $placeholder = "Escribe un país
 				</template>
 			</div>
 		</div>
-		<p class="hp-muted hp-small hp-mt">Visitas web (peticiones a tus dominios) de los últimos días agrupadas por país; "conectados ahora" son las conexiones HTTP/HTTPS abiertas en este momento.
-			Datos de país: <span x-html="v ? v.status.attribution : ''"></span><span x-show="v && v.status.month" x-text="v ? ' (base de ' + v.status.month + ')' : ''"></span>.
-			<a href="#" x-on:click.prevent="updateDb()" x-show="v && v.status.db">Actualizar ahora</a></p>
+		<p class="hp-muted hp-small hp-mt"><?= __e('Visitas web (peticiones a tus dominios) de los últimos días agrupadas por país; "conectados ahora" son las conexiones HTTP/HTTPS abiertas en este momento. Datos de país:') ?> <span x-html="v ? v.status.attribution : ''"></span><span x-show="v && v.status.month" x-text="v ? ' (base de ' + v.status.month + ')' : ''"></span>.
+			<a href="#" x-on:click.prevent="updateDb()" x-show="v && v.status.db"><?= __e('Actualizar ahora') ?></a></p>
 	</div>
 
 	<!-- ===================================================== SITIOS -->
 	<div x-show="tab === 'sites'" x-cloak>
 		<div class="hp-card">
-			<div class="hp-card-head"><h2 class="hp-card-title"><i class="fas fa-globe"></i>Quién puede ver cada sitio</h2></div>
+			<div class="hp-card-head"><h2 class="hp-card-title"><i class="fas fa-globe"></i><?= __e('Quién puede ver cada sitio') ?></h2></div>
 			<div class="hp-card-body hp-flush hp-table-wrap">
 				<table class="hp-table">
-					<thead><tr><th>Dominio</th><th>Países</th><th>IPs</th><th class="hp-right"></th></tr></thead>
+					<thead><tr><th><?= __e('Dominio') ?></th><th><?= __e('Países') ?></th><th><?= __e('IPs') ?></th><th class="hp-right"></th></tr></thead>
 					<tbody>
 						<template x-for="s in (v ? v.sites : [])" :key="s.domain">
 							<tr>
 								<td><b x-text="s.domain"></b><div class="hp-muted hp-small" x-text="s.user"></div></td>
 								<td>
-									<span class="hp-badge" x-show="s.mode === 'off' || !s.countries.length">Todo el mundo</span>
-									<template x-if="s.mode === 'allow' && s.countries.length"><span class="hp-badge hp-badge-ok" x-text="'Solo ' + names(s.countries)"></span></template>
-									<template x-if="s.mode === 'deny' && s.countries.length"><span class="hp-badge hp-badge-danger" x-text="'Excepto ' + names(s.countries)"></span></template>
+									<span class="hp-badge" x-show="s.mode === 'off' || !s.countries.length"><?= __e('Todo el mundo') ?></span>
+									<template x-if="s.mode === 'allow' && s.countries.length"><span class="hp-badge hp-badge-ok" x-text="HP.t('Solo ') + names(s.countries)"></span></template>
+									<template x-if="s.mode === 'deny' && s.countries.length"><span class="hp-badge hp-badge-danger" x-text="HP.t('Excepto ') + names(s.countries)"></span></template>
 								</td>
 								<td class="hp-small">
-									<span x-show="s.allow_ips.length" x-text="s.allow_ips.length + ' siempre permitidas'"></span>
+									<span x-show="s.allow_ips.length" x-text="s.allow_ips.length + HP.t(' siempre permitidas')"></span>
 									<span x-show="s.allow_ips.length && s.deny_ips.length"> · </span>
 									<span x-show="s.deny_ips.length" style="color:var(--hp-danger)" x-text="s.deny_ips.length + ' bloqueadas'"></span>
 									<span class="hp-muted" x-show="!s.allow_ips.length && !s.deny_ips.length">—</span>
 								</td>
 								<td class="hp-right hp-nowrap">
-									<button type="button" class="hp-btn hp-btn-sm" x-show="s.mode !== 'off' || s.deny_ips.length" x-on:click="logsSite(s.domain)" title="Ver quién fue bloqueado"><i class="fas fa-file-lines"></i>Bloqueados</button>
-									<button type="button" class="hp-btn hp-btn-sm hp-btn-primary" x-on:click="editSite(s)"><i class="fas fa-pen"></i>Configurar</button>
+									<button type="button" class="hp-btn hp-btn-sm" x-show="s.mode !== 'off' || s.deny_ips.length" x-on:click="logsSite(s.domain)" title="<?= __e('Ver quién fue bloqueado') ?>"><i class="fas fa-file-lines"></i><?= __e('Bloqueados') ?></button>
+									<button type="button" class="hp-btn hp-btn-sm hp-btn-primary" x-on:click="editSite(s)"><i class="fas fa-pen"></i><?= __e('Configurar') ?></button>
 								</td>
 							</tr>
 						</template>
@@ -164,39 +162,40 @@ $hp_cc_picker = function (string $model, string $placeholder = "Escribe un país
 				</table>
 			</div>
 			<div class="hp-card-body hp-small hp-muted" style="border-top:1px solid var(--hp-border)">
-				Los visitantes bloqueados ven una página «Este sitio no está disponible desde tu ubicación» (código <b>451</b>, aparece así en los registros).
-				La validación de Let's Encrypt sigue funcionando y el propio servidor y las redes privadas nunca se bloquean. Las VPN pueden saltarse el bloqueo por país.
+				<?= __e('Los visitantes bloqueados ven una página «Este sitio no está disponible desde tu ubicación» (código') ?> <b>451</b><?= __e(', aparece así en los registros). La validación de Let\'s Encrypt sigue funcionando y el propio servidor y las redes privadas nunca se bloquean. Las VPN pueden saltarse el bloqueo por país.') ?>
 			</div>
 		</div>
 	</div>
 
 	<dialog class="hp-modal" x-ref="site">
-		<div class="hp-modal-head"><h3 x-text="site ? 'Acceso a ' + site.domain : ''"></h3><button type="button" class="hp-icon-btn" x-on:click="$refs.site.close()"><i class="fas fa-xmark"></i></button></div>
+		<div class="hp-modal-head"><h3 x-text="site ? HP.t('Acceso a ') + site.domain : ''"></h3><button type="button" class="hp-icon-btn" x-on:click="$refs.site.close()"><i class="fas fa-xmark"></i></button></div>
 		<template x-if="site">
 			<div class="hp-modal-body hp-form">
 				<div class="hp-choices" style="grid-template-columns:repeat(auto-fill,minmax(190px,1fr))">
-					<label class="hp-choice" :class="site.mode === 'off' && 'active'" x-on:click="site.mode = 'off'"><b>Todo el mundo</b><small>Sin límite por país.</small></label>
-					<label class="hp-choice" :class="site.mode === 'allow' && 'active'" x-on:click="site.mode = 'allow'"><b>Solo estos países</b><small>Lista blanca: el resto queda fuera.</small></label>
-					<label class="hp-choice" :class="site.mode === 'deny' && 'active'" x-on:click="site.mode = 'deny'"><b>Todos menos estos</b><small>Lista negra de países.</small></label>
+					<label class="hp-choice" :class="site.mode === 'off' && 'active'" x-on:click="site.mode = 'off'"><b><?= __e('Todo el mundo') ?></b><small><?= __e('Sin límite por país.') ?></small></label>
+					<label class="hp-choice" :class="site.mode === 'allow' && 'active'" x-on:click="site.mode = 'allow'"><b><?= __e('Solo estos países') ?></b><small><?= __e('Lista blanca: el resto queda fuera.') ?></small></label>
+					<label class="hp-choice" :class="site.mode === 'deny' && 'active'" x-on:click="site.mode = 'deny'"><b><?= __e('Todos menos estos') ?></b><small><?= __e('Lista negra de países.') ?></small></label>
 				</div>
 				<div class="hp-field" x-show="site.mode !== 'off'">
-					<label x-text="site.mode === 'allow' ? 'Países con acceso' : 'Países bloqueados'"></label>
+					<label x-text="site.mode === 'allow' ? HP.t('Países con acceso') : HP.t('Países bloqueados')"></label>
 					<?php $hp_cc_picker("site.countries"); ?>
 					<div class="hp-hint" x-show="suggest(site).length">
-						<span x-text="site.mode === 'allow' ? 'De donde vienen tus visitas:' : 'Con muchos errores (posibles escáneres):'"></span>
+						<span x-text="site.mode === 'allow' ? HP.t('De donde vienen tus visitas:') : HP.t('Con muchos errores (posibles escáneres):')"></span>
 						<template x-for="cc in suggest(site)" :key="cc"><button type="button" class="hp-linkish hp-cc-sugg" x-on:click="site.countries = site.countries.concat(cc)" x-text="'+ ' + HP.countryName(cc)"></button></template>
 					</div>
 				</div>
 				<div class="hp-grid hp-grid-2">
-					<div class="hp-field"><label>IPs siempre permitidas</label><textarea class="hp-textarea hp-mono" rows="4" x-model="site.allow_ips" placeholder="190.116.43.0/24&#10;una IP o rango por línea"></textarea><div class="hp-hint">Entran aunque su país esté bloqueado.</div></div>
-					<div class="hp-field"><label>IPs bloqueadas</label><textarea class="hp-textarea hp-mono" rows="4" x-model="site.deny_ips" placeholder="45.148.10.62&#10;una IP o rango por línea"></textarea><div class="hp-hint">Bloqueadas aunque su país esté permitido.</div></div>
+					<div class="hp-field"><label><?= __e('IPs siempre permitidas') ?></label><textarea class="hp-textarea hp-mono" rows="4" x-model="site.allow_ips" placeholder="<?= __e('190.116.43.0/24
+una IP o rango por línea') ?>"></textarea><div class="hp-hint"><?= __e('Entran aunque su país esté bloqueado.') ?></div></div>
+					<div class="hp-field"><label><?= __e('IPs bloqueadas') ?></label><textarea class="hp-textarea hp-mono" rows="4" x-model="site.deny_ips" placeholder="<?= __e('45.148.10.62
+una IP o rango por línea') ?>"></textarea><div class="hp-hint"><?= __e('Bloqueadas aunque su país esté permitido.') ?></div></div>
 				</div>
-				<p class="inline-alert inline-alert-info" x-show="site.mode === 'allow'" style="margin:0"><i class="fas fa-circle-info"></i> Con «Solo estos países», los buscadores (Google, Bing) de otros países no podrán indexar el sitio.</p>
+				<p class="inline-alert inline-alert-info" x-show="site.mode === 'allow'" style="margin:0"><i class="fas fa-circle-info"></i> <?= __e('Con «Solo estos países», los buscadores (Google, Bing) de otros países no podrán indexar el sitio.') ?></p>
 			</div>
 		</template>
 		<div class="hp-modal-foot">
-			<button type="button" class="hp-btn" x-on:click="$refs.site.close()">Cancelar</button>
-			<button type="button" class="hp-btn hp-btn-primary" :disabled="busy" x-on:click="saveSite()"><i class="fas" :class="busy ? 'fa-circle-notch fa-spin' : 'fa-check'"></i>Guardar y aplicar</button>
+			<button type="button" class="hp-btn" x-on:click="$refs.site.close()"><?= __e('Cancelar') ?></button>
+			<button type="button" class="hp-btn hp-btn-primary" :disabled="busy" x-on:click="saveSite()"><i class="fas" :class="busy ? HP.t('fa-circle-notch fa-spin') : 'fa-check'"></i><?= __e('Guardar y aplicar') ?></button>
 		</div>
 	</dialog>
 
@@ -205,53 +204,53 @@ $hp_cc_picker = function (string $model, string $placeholder = "Escribe un país
 		<template x-if="v && v.ssh.failed">
 			<div class="hp-card hp-mb hp-geo-attacks">
 				<div class="hp-card-body">
-					<b><i class="fas fa-user-ninja"></i> <span x-text="num(v.ssh.failed)"></span> intentos fallidos de entrar por SSH en las últimas 24 horas</b>
+					<b><i class="fas fa-user-ninja"></i> <span x-text="num(v.ssh.failed)"></span> <?= __e('intentos fallidos de entrar por SSH en las últimas 24 horas') ?></b>
 					<span class="hp-muted" x-text="'desde ' + num(v.ssh.ips) + ' IPs: ' + v.ssh.countries.slice(0, 5).map((c) => HP.countryName(c.cc) + ' ' + num(c.n)).join(' · ')"></span>
-					<div class="hp-small hp-muted">Son robots probando contraseñas. Una lista blanca los deja fuera antes de que lleguen a intentarlo.</div>
+					<div class="hp-small hp-muted"><?= __e('Son robots probando contraseñas. Una lista blanca los deja fuera antes de que lleguen a intentarlo.') ?></div>
 				</div>
 			</div>
 		</template>
 		<div class="hp-card" x-show="v">
-			<div class="hp-card-head"><h2 class="hp-card-title"><i class="fas fa-user-shield"></i>Lista blanca para entrar al servidor</h2>
-				<label class="hp-check" style="margin:0"><input type="checkbox" x-model="fw.admin.enabled" x-on:change="check()"><span><b x-text="fw.admin.enabled ? 'Activada' : 'Desactivada'"></b></span></label></div>
+			<div class="hp-card-head"><h2 class="hp-card-title"><i class="fas fa-user-shield"></i><?= __e('Lista blanca para entrar al servidor') ?></h2>
+				<label class="hp-check" style="margin:0"><input type="checkbox" x-model="fw.admin.enabled" x-on:change="check()"><span><b x-text="fw.admin.enabled ? HP.t('Activada') : HP.t('Desactivada')"></b></span></label></div>
 			<div class="hp-card-body hp-form">
 				<div class="hp-field">
-					<label>Servicios protegidos</label>
+					<label><?= __e('Servicios protegidos') ?></label>
 					<div class="hp-flex hp-wrap" style="gap:16px">
 						<template x-for="(s, key) in (v ? v.services : {})" :key="key">
 							<label class="hp-check" style="margin:0"><input type="checkbox" :value="key" x-model="fw.admin.services" x-on:change="check()"><span><b x-text="s.label"></b><small x-text="'puerto ' + s.ports.replace(':', '-')"></small></span></label>
 						</template>
 					</div>
-					<div class="hp-hint">Las webs, el correo y el DNS no se ven afectados. phpMyAdmin va por la web y sigue pidiendo usuario y contraseña.</div>
+					<div class="hp-hint"><?= __e('Las webs, el correo y el DNS no se ven afectados. phpMyAdmin va por la web y sigue pidiendo usuario y contraseña.') ?></div>
 				</div>
 				<div class="hp-grid hp-grid-2">
 					<div class="hp-field">
-						<label>IPs permitidas</label>
-						<textarea class="hp-textarea hp-mono" rows="5" x-model="fw.admin.ips" x-on:change="check()" placeholder="una IP o rango por línea"></textarea>
-						<div class="hp-hint" x-show="v && v.client.ip">Estás entrando desde <b class="hp-mono" x-text="v.client.ip"></b> <span x-text="chk && chk.client ? '(' + HP.countryName(chk.client.cc) + ')' : ''"></span>
-							<a href="#" x-on:click.prevent="addMyIp()" x-show="!hasMyIp()">Añadir mi IP</a></div>
+						<label><?= __e('IPs permitidas') ?></label>
+						<textarea class="hp-textarea hp-mono" rows="5" x-model="fw.admin.ips" x-on:change="check()" placeholder="<?= __e('una IP o rango por línea') ?>"></textarea>
+						<div class="hp-hint" x-show="v && v.client.ip"><?= __e('Estás entrando desde') ?> <b class="hp-mono" x-text="v.client.ip"></b> <span x-text="chk && chk.client ? '(' + HP.countryName(chk.client.cc) + ')' : ''"></span>
+							<a href="#" x-on:click.prevent="addMyIp()" x-show="!hasMyIp()"><?= __e('Añadir mi IP') ?></a></div>
 					</div>
 					<div class="hp-field">
-						<label>Países permitidos <small class="hp-muted">(respaldo si tu IP cambia)</small></label>
+						<label><?= __e('Países permitidos') ?> <small class="hp-muted">(respaldo si tu IP cambia)</small></label>
 						<?php $hp_cc_picker("fw.admin.countries"); ?>
-						<div class="hp-hint">Tu proveedor de internet puede cambiarte la IP: permitir tu país evita quedarte fuera. Tailscale y las redes privadas siempre pueden entrar.</div>
+						<div class="hp-hint"><?= __e('Tu proveedor de internet puede cambiarte la IP: permitir tu país evita quedarte fuera. Tailscale y las redes privadas siempre pueden entrar.') ?></div>
 					</div>
 				</div>
 				<template x-if="chk">
 					<div class="hp-geo-check">
-						<div class="hp-small hp-muted">Con esta configuración:</div>
-						<div x-show="chk.client"><i class="fas" :class="chk.client && chk.client.admin && chk.client.server ? 'fa-circle-check ok' : 'fa-circle-xmark bad'"></i>
-							Tu conexión actual (<span class="hp-mono" x-text="chk.client ? chk.client.ip : ''"></span>) <b x-text="chk.client && chk.client.admin && chk.client.server ? 'puede entrar' : 'quedaría fuera'"></b></div>
+						<div class="hp-small hp-muted"><?= __e('Con esta configuración:') ?></div>
+						<div x-show="chk.client"><i class="fas" :class="chk.client && chk.client.admin && chk.client.server ? HP.t('fa-circle-check ok') : HP.t('fa-circle-xmark bad')"></i>
+							<?= __e('Tu conexión actual (') ?><span class="hp-mono" x-text="chk.client ? chk.client.ip : ''"></span>) <b x-text="chk.client && chk.client.admin && chk.client.server ? HP.t('puede entrar') : HP.t('quedaría fuera')"></b></div>
 						<template x-for="s in chk.ssh" :key="s.ip">
-							<div><i class="fas" :class="s.admin && s.server ? 'fa-circle-check ok' : 'fa-circle-minus bad'"></i> Sesión SSH abierta desde <span class="hp-mono" x-text="s.ip"></span> (<span x-text="HP.countryName(s.cc)"></span>):
-								<b x-text="s.admin && s.server ? 'podrá volver a entrar' : 'no podrá volver a entrar'"></b></div>
+							<div><i class="fas" :class="s.admin && s.server ? HP.t('fa-circle-check ok') : HP.t('fa-circle-minus bad')"></i> <?= __e('Sesión SSH abierta desde') ?> <span class="hp-mono" x-text="s.ip"></span> (<span x-text="HP.countryName(s.cc)"></span>):
+								<b x-text="s.admin && s.server ? HP.t('podrá volver a entrar') : HP.t('no podrá volver a entrar')"></b></div>
 						</template>
 					</div>
 				</template>
 			</div>
 			<div class="hp-modal-foot" style="border-top:1px solid var(--hp-border)">
 				<span class="hp-small hp-muted" style="margin-right:auto">Al aplicar tienes 3 minutos para confirmar; si no, se deshace solo.</span>
-				<button type="button" class="hp-btn hp-btn-primary" :disabled="busy" x-on:click="saveFw()"><i class="fas" :class="busy ? 'fa-circle-notch fa-spin' : 'fa-shield-halved'"></i>Aplicar</button>
+				<button type="button" class="hp-btn hp-btn-primary" :disabled="busy" x-on:click="saveFw()"><i class="fas" :class="busy ? HP.t('fa-circle-notch fa-spin') : 'fa-shield-halved'"></i><?= __e('Aplicar') ?></button>
 			</div>
 		</div>
 	</div>
@@ -259,25 +258,25 @@ $hp_cc_picker = function (string $model, string $placeholder = "Escribe un país
 	<!-- ===================================================== SERVIDOR -->
 	<div x-show="tab === 'server'" x-cloak>
 		<div class="hp-card" x-show="v">
-			<div class="hp-card-head"><h2 class="hp-card-title"><i class="fas fa-ban"></i>Bloquear en todos los servicios del servidor</h2></div>
+			<div class="hp-card-head"><h2 class="hp-card-title"><i class="fas fa-ban"></i><?= __e('Bloquear en todos los servicios del servidor') ?></h2></div>
 			<div class="hp-card-body hp-form">
 				<p class="inline-alert inline-alert-warning" style="margin:0 0 14px"><i class="fas fa-triangle-exclamation"></i>
-					Esto corta <b>todo</b>: webs, correo (no recibirás emails de servidores de esos países), DNS, FTP y SSH. Para limitar solo un sitio usa la pestaña <a href="#sites" x-on:click.prevent="go('sites')">Sitios web</a>.</p>
+					<?= __e('Esto corta') ?> <b>todo</b><?= __e(': webs, correo (no recibirás emails de servidores de esos países), DNS, FTP y SSH. Para limitar solo un sitio usa la pestaña') ?> <a href="#sites" x-on:click.prevent="go('sites')"><?= __e('Sitios web') ?></a>.</p>
 				<div class="hp-grid hp-grid-2">
-					<div class="hp-field"><label>Países bloqueados</label><?php $hp_cc_picker("fw.server.countries"); ?>
-						<div class="hp-hint" x-show="attackSuggest().length">Más intentos de ataque por SSH:
+					<div class="hp-field"><label><?= __e('Países bloqueados') ?></label><?php $hp_cc_picker("fw.server.countries"); ?>
+						<div class="hp-hint" x-show="attackSuggest().length"><?= __e('Más intentos de ataque por SSH:') ?>
 							<template x-for="cc in attackSuggest()" :key="cc"><button type="button" class="hp-linkish hp-cc-sugg" x-on:click="fw.server.countries = fw.server.countries.concat(cc)" x-text="'+ ' + HP.countryName(cc)"></button></template></div>
 					</div>
-					<div class="hp-field"><label>IPs bloqueadas</label><textarea class="hp-textarea hp-mono" rows="5" x-model="fw.server.ips" placeholder="una IP o rango por línea"></textarea></div>
+					<div class="hp-field"><label><?= __e('IPs bloqueadas') ?></label><textarea class="hp-textarea hp-mono" rows="5" x-model="fw.server.ips" placeholder="<?= __e('una IP o rango por línea') ?>"></textarea></div>
 				</div>
 				<template x-if="md && Object.keys(md.fw).length">
-					<div class="hp-small"><b>Descartado desde el último cambio:</b>
+					<div class="hp-small"><b><?= __e('Descartado desde el último cambio:') ?></b>
 						<template x-for="(n, cc) in md.fw" :key="cc"><span class="hp-badge" style="margin:2px" x-text="HP.countryName(cc) + ': ' + num(n) + ' paquetes'"></span></template></div>
 				</template>
 			</div>
 			<div class="hp-modal-foot" style="border-top:1px solid var(--hp-border)">
-				<span class="hp-small hp-muted" style="margin-right:auto">Las conexiones ya abiertas no se cortan. Tu IP actual nunca se puede bloquear.</span>
-				<button type="button" class="hp-btn hp-btn-primary" :disabled="busy" x-on:click="saveFw()"><i class="fas" :class="busy ? 'fa-circle-notch fa-spin' : 'fa-ban'"></i>Aplicar</button>
+				<span class="hp-small hp-muted" style="margin-right:auto"><?= __e('Las conexiones ya abiertas no se cortan. Tu IP actual nunca se puede bloquear.') ?></span>
+				<button type="button" class="hp-btn hp-btn-primary" :disabled="busy" x-on:click="saveFw()"><i class="fas" :class="busy ? HP.t('fa-circle-notch fa-spin') : 'fa-ban'"></i><?= __e('Aplicar') ?></button>
 			</div>
 		</div>
 	</div>
@@ -301,7 +300,7 @@ document.addEventListener('alpine:init', () => {
 			left: 0,
 			range: '7d',
 			metric: 'req',
-			metrics: [['req', 'Visitas', 'fa-eye'], ['live', 'Conectados ahora', 'fa-satellite-dish'], ['err', 'Errores', 'fa-triangle-exclamation'], ['blk', 'Bloqueados', 'fa-ban']],
+			metrics: [['req', HP.t('Visitas'), 'fa-eye'], ['live', HP.t('Conectados ahora'), 'fa-satellite-dish'], ['err', HP.t('Errores'), 'fa-triangle-exclamation'], ['blk', HP.t('Bloqueados'), 'fa-ban']],
 			async init() {
 				window.addEventListener('hashchange', () => (this.tab = (location.hash || '#map').slice(1)));
 				await this.loadView();
@@ -336,7 +335,7 @@ document.addEventListener('alpine:init', () => {
 					this.left--;
 					if (this.left <= 0) {
 						clearInterval(timer);
-						HP.toast('No se confirmó: se volvió a la configuración anterior', 'error');
+						HP.toast(HP.t('No se confirmó: se volvió a la configuración anterior'), 'error');
 						setTimeout(() => this.loadView(), 3000);
 					}
 				}, 1000);
@@ -346,7 +345,7 @@ document.addEventListener('alpine:init', () => {
 			},
 			async install() {
 				try {
-					await HP.runJob('geo-install', {}, 'Activar acceso por país');
+					await HP.runJob('geo-install', {}, HP.t('Activar acceso por país'));
 					await this.loadView();
 					this.loadMap();
 				} catch (e) {
@@ -355,7 +354,7 @@ document.addEventListener('alpine:init', () => {
 			},
 			async updateDb() {
 				try {
-					await HP.runJob('geo-update', {}, 'Actualizar base de países');
+					await HP.runJob('geo-update', {}, HP.t('Actualizar base de países'));
 					this.loadView();
 				} catch (e) {
 					HP.toast(e.message, 'error');
@@ -396,7 +395,7 @@ document.addEventListener('alpine:init', () => {
 				return rows;
 			},
 			metricLabel() {
-				return { req: 'visitas', live: 'conexiones ahora', err: 'errores', blk: 'bloqueos' }[this.metric];
+				return { req: 'visitas', live: HP.t('conexiones ahora'), err: 'errores', blk: 'bloqueos' }[this.metric];
 			},
 			info() {
 				const c = (this.md && this.md.countries[this.sel]) || { req: 0, err: 0, blk: 0, ips: 0, top: [] };
@@ -407,7 +406,7 @@ document.addEventListener('alpine:init', () => {
 				const c = this.md && this.md.countries[cc], l = this.md && this.md.live[cc];
 				const where = this.blockedWhere(cc);
 				return '<b>' + HP.esc(HP.countryName(cc)) + '</b>' +
-					(c ? '<div>' + c.req.toLocaleString() + ' peticiones · ' + c.ips + ' IPs</div>' + (c.err ? '<div>' + this.pct(c.err, c.req) + ' con error</div>' : '') : '<div class="hp-muted">Sin visitas en el periodo</div>') +
+					(c ? '<div>' + c.req.toLocaleString() + HP.t(' peticiones · ') + c.ips + ' IPs</div>' + (c.err ? '<div>' + this.pct(c.err, c.req) + ' con error</div>' : '') : '<div class="hp-muted">Sin visitas en el periodo</div>') +
 					(l ? '<div>Ahora: ' + l.conns + ' conexiones</div>' : '') +
 					(where.length ? '<div class="hp-map-tip-bad">Bloqueado en: ' + HP.esc(where.join(', ')) + '</div>' : '');
 			},
@@ -433,8 +432,8 @@ document.addEventListener('alpine:init', () => {
 			},
 			async blockCountry(scope) {
 				const cc = this.sel, name = HP.countryName(cc);
-				const where = scope === 'site' ? this.blockDomain : 'todo el servidor (webs, correo, DNS, SSH…)';
-				if (!(await HP.confirm('¿Bloquear ' + name + ' en ' + where + '?', { ok: 'Bloquear', danger: true }))) return;
+				const where = scope === 'site' ? this.blockDomain : HP.t('todo el servidor (webs, correo, DNS, SSH…)');
+				if (!(await HP.confirm(HP.t('¿Bloquear ') + name + ' en ' + where + '?', { ok: HP.t('Bloquear'), danger: true }))) return;
 				try {
 					this.v = Object.assign(this.v, await HP.api('geo-block', { kind: 'country', value: cc, scope, domain: this.blockDomain }));
 					HP.toast(name + ' bloqueado');
@@ -451,7 +450,7 @@ document.addEventListener('alpine:init', () => {
 			},
 			// ------------------------------------------------ sitios
 			names(ccs) {
-				return ccs.slice(0, 4).map((c) => HP.countryName(c)).join(', ') + (ccs.length > 4 ? ' y ' + (ccs.length - 4) + ' más' : '');
+				return ccs.slice(0, 4).map((c) => HP.countryName(c)).join(', ') + (ccs.length > 4 ? ' y ' + (ccs.length - 4) + HP.t(' más') : '');
 			},
 			editSite(s) {
 				this.site = { domain: s.domain, user: s.user, mode: s.mode, countries: s.countries.slice(), allow_ips: lines(s.allow_ips), deny_ips: lines(s.deny_ips) };
@@ -469,7 +468,7 @@ document.addEventListener('alpine:init', () => {
 					const r = await HP.api('geo-site-set', this.site);
 					this.v = Object.assign(this.v, r);
 					this.$refs.site.close();
-					HP.toast('Aplicado en ' + this.site.domain);
+					HP.toast(HP.t('Aplicado en ') + this.site.domain);
 					this.loadMap();
 				} catch (e) {
 					HP.toast(e.message, 'error');
@@ -512,7 +511,7 @@ document.addEventListener('alpine:init', () => {
 					this.v = Object.assign(this.v, await HP.api('geo-firewall-set', this.payload()));
 					this.v.now = Math.floor(Date.now() / 1000);
 					await this.loadView();
-					HP.toast(this.left > 0 ? 'Aplicado: confirma antes de 3 minutos' : 'Aplicado');
+					HP.toast(this.left > 0 ? HP.t('Aplicado: confirma antes de 3 minutos') : HP.t('Aplicado'));
 					this.check();
 				} catch (e) {
 					HP.toast(e.message, 'error');
@@ -525,7 +524,7 @@ document.addEventListener('alpine:init', () => {
 					await HP.api('geo-confirm');
 					clearInterval(timer);
 					this.left = 0;
-					HP.toast('Confirmado. Los cambios quedan aplicados.');
+					HP.toast(HP.t('Confirmado. Los cambios quedan aplicados.'));
 					this.loadView();
 				} catch (e) {
 					HP.toast(e.message, 'error');

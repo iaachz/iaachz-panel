@@ -10,7 +10,7 @@ foreach (hp_run(["site-list", $user], $err) ?? [] as $s) {
 	}
 }
 if (!$site) {
-	hp_flash("error", "Dominio no encontrado: " . $domain);
+	hp_flash("error", __('Dominio no encontrado: ') . $domain);
 	hp_redirect("/pro/sites/");
 }
 $backends = hp_vjson("v-list-web-templates-backend");

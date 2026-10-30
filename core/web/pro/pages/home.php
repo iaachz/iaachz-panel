@@ -1,12 +1,12 @@
 <?php
 $hour = (int) date("G");
-$greet = $hour < 12 ? "Buenos días" : ($hour < 19 ? "Buenas tardes" : "Buenas noches");
-$actions = '<a class="hp-btn" href="/pro/sites/"><i class="fas fa-earth-americas"></i>Sitios web</a>'
-	. '<a class="hp-btn hp-btn-primary" href="/pro/new/"><i class="fas fa-plus"></i>Agregar dominio</a>';
+$greet = $hour < 12 ? __('Buenos días') : ($hour < 19 ? __('Buenas tardes') : __('Buenas noches'));
+$actions = '<a class="hp-btn" href="/pro/sites/"><i class="fas fa-earth-americas"></i>' . __("Sitios web") . '</a>'
+	. '<a class="hp-btn hp-btn-primary" href="/pro/new/"><i class="fas fa-plus"></i>' . __("Agregar dominio") . '</a>';
 if (hp_admin()) {
-	$actions .= '<a class="hp-btn hp-btn-primary" href="/pro/new/?mode=subscription"><i class="fas fa-user-plus"></i>Nueva suscripción</a>';
+	$actions .= '<a class="hp-btn hp-btn-primary" href="/pro/new/?mode=subscription"><i class="fas fa-user-plus"></i>' . __("Nueva suscripción") . '</a>';
 }
-hp_page_header($greet . ", " . hp_me(), hp_admin() ? "Resumen del servidor y de todas las suscripciones" : "Resumen de tu cuenta de hosting", [], $actions);
+hp_page_header($greet . ", " . hp_me(), hp_admin() ? __('Resumen del servidor y de todas las suscripciones') : __('Resumen de tu cuenta de hosting'), [], $actions);
 ?>
 
 <!-- KPIs -->
@@ -14,14 +14,14 @@ hp_page_header($greet . ", " . hp_me(), hp_admin() ? "Resumen del servidor y de 
 	<?php if (hp_admin()) { ?>
 		<a class="hp-card hp-stat" href="/pro/subscriptions/" style="text-decoration:none">
 			<div class="hp-stat-icon hp-tint-purple"><i class="fas fa-users"></i></div>
-			<div><div class="hp-stat-value"><?= $totals["users"] ?></div><div class="hp-stat-label">Suscripciones</div></div>
+			<div><div class="hp-stat-value"><?= $totals["users"] ?></div><div class="hp-stat-label"><?= __e('Suscripciones') ?></div></div>
 		</a>
 	<?php } else { $uu = $totals["user"]; ?>
 		<div class="hp-card hp-stat">
 			<div class="hp-stat-icon hp-tint-purple"><i class="fas fa-hard-drive"></i></div>
 			<div style="flex:1">
 				<div class="hp-stat-value"><?= hp_mb($uu["U_DISK"] ?? 0) ?></div>
-				<div class="hp-stat-label">Disco usado de <?= hp_mb($uu["DISK_QUOTA"] ?? "unlimited") ?></div>
+				<div class="hp-stat-label"><?= __e("Disco usado de %s", hp_mb($uu["DISK_QUOTA"] ?? "unlimited")) ?></div>
 				<?php $pct = get_percentage($uu["U_DISK"] ?? 0, $uu["DISK_QUOTA"] ?? "unlimited"); ?>
 				<div class="hp-progress hp-mt is-<?= $pct >= 90 ? "danger" : ($pct >= 75 ? "warn" : "ok") ?>" style="margin-top:8px"><span style="width:<?= $pct ?>%"></span></div>
 			</div>
@@ -29,15 +29,15 @@ hp_page_header($greet . ", " . hp_me(), hp_admin() ? "Resumen del servidor y de 
 	<?php } ?>
 	<a class="hp-card hp-stat" href="/pro/sites/" style="text-decoration:none">
 		<div class="hp-stat-icon hp-tint-blue"><i class="fas fa-earth-americas"></i></div>
-		<div><div class="hp-stat-value"><?= $totals["web"] ?></div><div class="hp-stat-label">Sitios web</div></div>
+		<div><div class="hp-stat-value"><?= $totals["web"] ?></div><div class="hp-stat-label"><?= __e('Sitios web') ?></div></div>
 	</a>
 	<a class="hp-card hp-stat" href="/pro/apps/" style="text-decoration:none">
 		<div class="hp-stat-icon hp-tint-green"><i class="fas fa-cubes"></i></div>
-		<div><div class="hp-stat-value"><?= $running ?><span class="hp-muted" style="font-size:1rem"> / <?= count($apps) ?></span></div><div class="hp-stat-label">Aplicaciones en marcha</div></div>
+		<div><div class="hp-stat-value"><?= $running ?><span class="hp-muted" style="font-size:1rem"> / <?= count($apps) ?></span></div><div class="hp-stat-label"><?= __e('Aplicaciones en marcha') ?></div></div>
 	</a>
 	<a class="hp-card hp-stat" href="/pro/databases/" style="text-decoration:none">
 		<div class="hp-stat-icon hp-tint-orange"><i class="fas fa-database"></i></div>
-		<div><div class="hp-stat-value"><?= $totals["db"] ?></div><div class="hp-stat-label">Bases de datos · <?= $totals["mail"] ?> buzones</div></div>
+		<div><div class="hp-stat-value"><?= $totals["db"] ?></div><div class="hp-stat-label"><?= __e("Bases de datos · %s buzones", $totals["mail"]) ?></div></div>
 	</a>
 </div>
 
@@ -48,43 +48,43 @@ hp_page_header($greet . ", " . hp_me(), hp_admin() ? "Resumen del servidor y de 
 			<!-- Estado del servidor -->
 			<div class="hp-card">
 				<div class="hp-card-head">
-					<h2 class="hp-card-title"><i class="fas fa-server"></i>Estado del servidor
-						<span class="hp-badge hp-badge-ok" x-show="live && !error"><i class="fas fa-circle"></i>En vivo</span>
+					<h2 class="hp-card-title"><i class="fas fa-server"></i><?= __e('Estado del servidor') ?>
+						<span class="hp-badge hp-badge-ok" x-show="live && !error"><i class="fas fa-circle"></i><?= __e('En vivo') ?></span>
 					</h2>
-					<a class="hp-btn hp-btn-sm" href="/pro/monitor/"><i class="fas fa-chart-line"></i>Monitor completo</a>
+					<a class="hp-btn hp-btn-sm" href="/pro/monitor/"><i class="fas fa-chart-line"></i><?= __e('Monitor completo') ?></a>
 				</div>
 				<div class="hp-card-body">
 					<p class="inline-alert inline-alert-danger" x-show="error" x-text="error" x-cloak></p>
-					<template x-if="!live && !error"><div class="hp-empty"><i class="fas fa-circle-notch fa-spin"></i> Leyendo métricas…</div></template>
+					<template x-if="!live && !error"><div class="hp-empty"><i class="fas fa-circle-notch fa-spin"></i> <?= __e('Leyendo métricas…') ?></div></template>
 					<template x-if="live">
 						<div>
 							<div class="hp-gauges">
 								<div class="hp-gauge">
 									<div class="hp-gauge-ring"><span x-html="gauge(live.cpu)"></span><div class="hp-gauge-val" x-text="Math.round(live.cpu) + '%'"></div></div>
 									<div class="hp-gauge-label">CPU</div>
-									<div class="hp-gauge-sub" x-text="live.cores + ' núcleos'"></div>
+									<div class="hp-gauge-sub" x-text="HP.t('%s núcleos', live.cores)"></div>
 								</div>
 								<div class="hp-gauge">
 									<div class="hp-gauge-ring"><span x-html="gauge(live.mem.percent)"></span><div class="hp-gauge-val" x-text="Math.round(live.mem.percent) + '%'"></div></div>
-									<div class="hp-gauge-label">Memoria</div>
+									<div class="hp-gauge-label"><?= __e('Memoria') ?></div>
 									<div class="hp-gauge-sub" x-text="fmt.bytes(live.mem.used) + ' de ' + fmt.bytes(live.mem.total)"></div>
 								</div>
 								<div class="hp-gauge">
 									<div class="hp-gauge-ring"><span x-html="gauge(rootDisk().percent, 80, 90)"></span><div class="hp-gauge-val" x-text="Math.round(rootDisk().percent) + '%'"></div></div>
-									<div class="hp-gauge-label">Disco /</div>
+									<div class="hp-gauge-label"><?= __e('Disco /') ?></div>
 									<div class="hp-gauge-sub" x-text="fmt.bytes(rootDisk().used) + ' de ' + fmt.bytes(rootDisk().total)"></div>
 								</div>
 								<div class="hp-gauge">
 									<div class="hp-gauge-ring"><span x-html="gauge(loadPct(), 70, 100)"></span><div class="hp-gauge-val" x-text="live.load[0].toFixed(2)"></div></div>
-									<div class="hp-gauge-label">Carga</div>
+									<div class="hp-gauge-label"><?= __e('Carga') ?></div>
 									<div class="hp-gauge-sub" x-text="live.load[1].toFixed(2) + ' · ' + live.load[2].toFixed(2) + ' (5 / 15 min)'"></div>
 								</div>
 							</div>
 							<div class="hp-grid hp-grid-4 hp-mt" style="gap:10px">
 								<div class="hp-tag" style="justify-content:center;padding:8px"><i class="fas fa-arrow-down" style="color:#0ea5e9"></i><span x-text="fmt.rate(live.net.rx)"></span></div>
 								<div class="hp-tag" style="justify-content:center;padding:8px"><i class="fas fa-arrow-up" style="color:#14945a"></i><span x-text="fmt.rate(live.net.tx)"></span></div>
-								<a class="hp-tag" href="/pro/monitor/#traffic" title="Ver tráfico y conexiones" style="justify-content:center;padding:8px;text-decoration:none"><i class="fas fa-bolt" style="color:#1f6fd6"></i><span x-text="live.web && live.web.req != null ? live.web.req + ' pet/s · ' + live.web.active + ' conexiones' : 'Tráfico'"></span></a>
-								<div class="hp-tag" style="justify-content:center;padding:8px"><i class="fas fa-clock"></i><span x-text="'Activo ' + fmt.duration(live.uptime)"></span></div>
+								<a class="hp-tag" href="/pro/monitor/#traffic" title="<?= __e('Ver tráfico y conexiones') ?>" style="justify-content:center;padding:8px;text-decoration:none"><i class="fas fa-bolt" style="color:#1f6fd6"></i><span x-text="live.web && live.web.req != null ? HP.t('%s pet/s · %s conexiones', live.web.req, live.web.active) : HP.t('Tráfico')"></span></a>
+								<div class="hp-tag" style="justify-content:center;padding:8px"><i class="fas fa-clock"></i><span x-text="HP.t('Activo %s', fmt.duration(live.uptime))"></span></div>
 							</div>
 						</div>
 					</template>
@@ -94,13 +94,13 @@ hp_page_header($greet . ", " . hp_me(), hp_admin() ? "Resumen del servidor y de 
 			<!-- Gráficos -->
 			<div class="hp-card">
 				<div class="hp-card-head">
-					<h2 class="hp-card-title"><i class="fas fa-wave-square"></i>Tiempo real <span class="hp-muted hp-small" style="font-weight:400">(últimos 2 minutos)</span></h2>
+					<h2 class="hp-card-title"><i class="fas fa-wave-square"></i><?= __e('Tiempo real') ?> <span class="hp-muted hp-small" style="font-weight:400"><?= __e('(últimos 2 minutos)') ?></span></h2>
 				</div>
 				<div class="hp-card-body"><div class="hp-chart hp-chart-sm"><canvas x-ref="live"></canvas></div></div>
 			</div>
 			<div class="hp-card">
 				<div class="hp-card-head">
-					<h2 class="hp-card-title"><i class="fas fa-chart-area"></i>Historial de recursos</h2>
+					<h2 class="hp-card-title"><i class="fas fa-chart-area"></i><?= __e('Historial de recursos') ?></h2>
 					<div class="hp-segmented">
 						<template x-for="r in ['1h','24h','7d','30d']">
 							<button type="button" x-text="r" :class="range === r && 'active'" x-on:click="range = r; loadHistory()"></button>
@@ -112,10 +112,10 @@ hp_page_header($greet . ", " . hp_me(), hp_admin() ? "Resumen del servidor y de 
 
 			<!-- Procesos -->
 			<div class="hp-card">
-				<div class="hp-card-head"><h2 class="hp-card-title"><i class="fas fa-list-ol"></i>Procesos con más consumo</h2></div>
+				<div class="hp-card-head"><h2 class="hp-card-title"><i class="fas fa-list-ol"></i><?= __e('Procesos con más consumo') ?></h2></div>
 				<div class="hp-card-body hp-flush hp-table-wrap">
 					<table class="hp-table">
-						<thead><tr><th>Proceso</th><th>Usuario</th><th class="hp-right">CPU</th><th class="hp-right">RAM</th><th class="hp-right">Memoria</th></tr></thead>
+						<thead><tr><th><?= __e('Proceso') ?></th><th><?= __e('Usuario') ?></th><th class="hp-right">CPU</th><th class="hp-right">RAM</th><th class="hp-right"><?= __e('Memoria') ?></th></tr></thead>
 						<tbody>
 							<template x-for="p in (live ? live.top : [])" :key="p.pid">
 								<tr>
@@ -135,16 +135,16 @@ hp_page_header($greet . ", " . hp_me(), hp_admin() ? "Resumen del servidor y de 
 		<div>
 			<!-- Información -->
 			<div class="hp-card">
-				<div class="hp-card-head"><h2 class="hp-card-title"><i class="fas fa-circle-info"></i>Servidor</h2></div>
+				<div class="hp-card-head"><h2 class="hp-card-title"><i class="fas fa-circle-info"></i><?= __e('Servidor') ?></h2></div>
 				<div class="hp-card-body">
 					<template x-if="live">
 						<dl class="hp-kv">
-							<dt>Nombre</dt><dd x-text="live.hostname"></dd>
-							<dt>Sistema</dt><dd x-text="live.os"></dd>
-							<dt>Kernel</dt><dd x-text="live.kernel"></dd>
-							<dt>Procesador</dt><dd x-text="live.cpu_model"></dd>
-							<dt>Hestia</dt><dd x-text="'v' + live.hestia_version + ' + Pro'"></dd>
-							<dt>Procesos</dt><dd x-text="live.procs"></dd>
+							<dt><?= __e('Nombre') ?></dt><dd x-text="live.hostname"></dd>
+							<dt><?= __e('Sistema') ?></dt><dd x-text="live.os"></dd>
+							<dt><?= __e('Kernel') ?></dt><dd x-text="live.kernel"></dd>
+							<dt><?= __e('Procesador') ?></dt><dd x-text="live.cpu_model"></dd>
+							<dt>Hestia</dt><dd x-text="'v' + live.hestia_version + HP.t(' + Pro')"></dd>
+							<dt><?= __e('Procesos') ?></dt><dd x-text="live.procs"></dd>
 						</dl>
 					</template>
 				</div>
@@ -152,21 +152,21 @@ hp_page_header($greet . ", " . hp_me(), hp_admin() ? "Resumen del servidor y de 
 
 			<!-- Acciones rápidas -->
 			<div class="hp-card">
-				<div class="hp-card-head"><h2 class="hp-card-title"><i class="fas fa-bolt"></i>Acciones rápidas</h2></div>
+				<div class="hp-card-head"><h2 class="hp-card-title"><i class="fas fa-bolt"></i><?= __e('Acciones rápidas') ?></h2></div>
 				<div class="hp-card-body">
 					<div class="hp-tools" style="grid-template-columns:repeat(2,minmax(0,1fr))">
-						<a class="hp-tool" href="/pro/new/"><i class="fas fa-earth-americas"></i>Agregar dominio</a>
-						<a class="hp-tool" href="/pro/new/?mode=subscription"><i class="fas fa-user-plus"></i>Nueva suscripción</a>
-						<a class="hp-tool" href="/pro/new/?hosting=node"><i class="fas fa-cube" style="color:#3c873a"></i>App Node.js</a>
-						<a class="hp-tool" href="/pro/new/?hosting=python"><i class="fas fa-terminal" style="color:#306998"></i>App Python</a>
+						<a class="hp-tool" href="/pro/new/"><i class="fas fa-earth-americas"></i><?= __e('Agregar dominio') ?></a>
+						<a class="hp-tool" href="/pro/new/?mode=subscription"><i class="fas fa-user-plus"></i><?= __e('Nueva suscripción') ?></a>
+						<a class="hp-tool" href="/pro/new/?hosting=node"><i class="fas fa-cube" style="color:#3c873a"></i><?= __e('App Node.js') ?></a>
+						<a class="hp-tool" href="/pro/new/?hosting=python"><i class="fas fa-terminal" style="color:#306998"></i><?= __e('App Python') ?></a>
 						<a class="hp-tool" href="/pro/new/?hosting=wordpress"><i class="fas fa-pen-nib" style="color:#21759b"></i>WordPress</a>
 						<a class="hp-tool" href="/pro/docker/"><i class="fas fa-box" style="color:#1d63ed"></i>Docker</a>
-						<a class="hp-tool" href="/add/db/"><i class="fas fa-database"></i>Base de datos</a>
-						<a class="hp-tool" href="/add/mail/"><i class="fas fa-envelope"></i>Correo</a>
+						<a class="hp-tool" href="/add/db/"><i class="fas fa-database"></i><?= __e('Base de datos') ?></a>
+						<a class="hp-tool" href="/add/mail/"><i class="fas fa-envelope"></i><?= __e('Correo') ?></a>
 						<a class="hp-tool" href="/list/dns/"><i class="fas fa-sitemap"></i>DNS</a>
-						<a class="hp-tool" href="/list/backup/"><i class="fas fa-life-ring"></i>Copias</a>
-						<a class="hp-tool" href="/fm/"><i class="fas fa-folder-open"></i>Archivos</a>
-						<a class="hp-tool" href="/list/firewall/"><i class="fas fa-shield"></i>Cortafuegos</a>
+						<a class="hp-tool" href="/list/backup/"><i class="fas fa-life-ring"></i><?= __e('Copias') ?></a>
+						<a class="hp-tool" href="/fm/"><i class="fas fa-folder-open"></i><?= __e('Archivos') ?></a>
+						<a class="hp-tool" href="/list/firewall/"><i class="fas fa-shield"></i><?= __e('Cortafuegos') ?></a>
 					</div>
 				</div>
 			</div>
@@ -174,8 +174,8 @@ hp_page_header($greet . ", " . hp_me(), hp_admin() ? "Resumen del servidor y de 
 			<!-- Servicios -->
 			<div class="hp-card" id="services">
 				<div class="hp-card-head">
-					<h2 class="hp-card-title"><i class="fas fa-gears"></i>Servicios</h2>
-					<a class="hp-btn hp-btn-sm" href="/list/server/">Gestionar</a>
+					<h2 class="hp-card-title"><i class="fas fa-gears"></i><?= __e('Servicios') ?></h2>
+					<a class="hp-btn hp-btn-sm" href="/list/server/"><?= __e('Gestionar') ?></a>
 				</div>
 				<div class="hp-card-body hp-flush">
 					<template x-if="!services"><div class="hp-empty"><i class="fas fa-circle-notch fa-spin"></i></div></template>
@@ -186,7 +186,7 @@ hp_page_header($greet . ", " . hp_me(), hp_admin() ? "Resumen del servidor y de 
 									<td><span class="hp-dot" :class="s.STATE === 'running' ? 'ok' : 'danger'"></span></td>
 									<td><b x-text="name"></b><div class="hp-muted hp-small" x-text="s.SYSTEM"></div></td>
 									<td class="hp-right hp-small hp-muted hp-nowrap" x-text="s.MEM + ' MB'"></td>
-									<td class="hp-right"><button type="button" class="hp-btn hp-btn-xs" x-on:click="restart(name)" title="Reiniciar"><i class="fas fa-rotate"></i></button></td>
+									<td class="hp-right"><button type="button" class="hp-btn hp-btn-xs" x-on:click="restart(name)" title="<?= __e('Reiniciar') ?>"><i class="fas fa-rotate"></i></button></td>
 								</tr>
 							</template>
 						</tbody>
@@ -196,11 +196,11 @@ hp_page_header($greet . ", " . hp_me(), hp_admin() ? "Resumen del servidor y de 
 
 			<div class="hp-card">
 				<div class="hp-card-head">
-					<h2 class="hp-card-title"><i class="fas fa-shield-halved"></i>Asesor de seguridad</h2>
+					<h2 class="hp-card-title"><i class="fas fa-shield-halved"></i><?= __e('Asesor de seguridad') ?></h2>
 				</div>
 				<div class="hp-card-body">
-					<p class="hp-muted" style="margin-top:0">Revisa SSL, actualizaciones, servicios, disco y aplicaciones caídas con recomendaciones de un clic.</p>
-					<a class="hp-btn hp-btn-block" href="/pro/advisor/"><i class="fas fa-stethoscope"></i>Ver recomendaciones</a>
+					<p class="hp-muted" style="margin-top:0"><?= __e('Revisa SSL, actualizaciones, servicios, disco y aplicaciones caídas con recomendaciones de un clic.') ?></p>
+					<a class="hp-btn hp-btn-block" href="/pro/advisor/"><i class="fas fa-stethoscope"></i><?= __e('Ver recomendaciones') ?></a>
 				</div>
 			</div>
 		</div>
@@ -211,8 +211,8 @@ hp_page_header($greet . ", " . hp_me(), hp_admin() ? "Resumen del servidor y de 
 <!-- Sitios -->
 <div class="hp-card hp-mt">
 	<div class="hp-card-head">
-		<h2 class="hp-card-title"><i class="fas fa-earth-americas"></i><?= hp_admin() ? "Sitios recientes" : "Tus sitios web" ?></h2>
-		<a class="hp-btn hp-btn-sm" href="/pro/sites/">Ver todos</a>
+		<h2 class="hp-card-title"><i class="fas fa-earth-americas"></i><?= hp_admin() ? __('Sitios recientes') : __('Tus sitios web') ?></h2>
+		<a class="hp-btn hp-btn-sm" href="/pro/sites/"><?= __e('Ver todos') ?></a>
 	</div>
 	<div class="hp-card-body hp-flush">
 		<?php
@@ -221,9 +221,9 @@ hp_page_header($greet . ", " . hp_me(), hp_admin() ? "Resumen del servidor y de 
 		if (!$shown) { ?>
 			<div class="hp-empty">
 				<i class="fas fa-earth-americas hp-empty-icon"></i>
-				<h3>Aún no hay sitios</h3>
-				<p>Crea tu primer sitio web en menos de un minuto.</p>
-				<a class="hp-btn hp-btn-primary" href="/pro/new/"><i class="fas fa-plus"></i>Agregar dominio</a>
+				<h3><?= __e('Aún no hay sitios') ?></h3>
+				<p><?= __e('Crea tu primer sitio web en menos de un minuto.') ?></p>
+				<a class="hp-btn hp-btn-primary" href="/pro/new/"><i class="fas fa-plus"></i><?= __e('Agregar dominio') ?></a>
 			</div>
 		<?php } ?>
 		<?php foreach ($shown as $s) {
@@ -236,13 +236,13 @@ hp_page_header($greet . ", " . hp_me(), hp_admin() ? "Resumen del servidor y de 
 						<div class="hp-domain-meta">
 							<?php if (hp_admin()) { ?><span class="hp-tag"><i class="fas fa-user"></i><?= e($s["user"]) ?></span><?php } ?>
 							<span class="hp-tag"><?= e($s["app"] ? hp_hosting_meta($s["app"]["type"])[0] . (!empty($s["app"]["version"]) ? " " . $s["app"]["version"] : "") : ($s["cms"] ?: $s["php"])) ?></span>
-							<?= $s["ssl"] ? '<span class="hp-badge hp-badge-ok"><i class="fas fa-lock"></i>HTTPS</span>' : '<span class="hp-badge hp-badge-warn"><i class="fas fa-lock-open"></i>Sin SSL</span>' ?>
+							<?= $s["ssl"] ? '<span class="hp-badge hp-badge-ok"><i class="fas fa-lock"></i>HTTPS</span>' : ('<span class="hp-badge hp-badge-warn">' . '<i class="fas fa-lock-open">' . '</i>' . __('Sin SSL') . '</span>') ?>
 							<?php if ($s["app"]) { echo hp_state_badge($s["app"]["state"]); } ?>
 						</div>
 					</div>
 					<div class="hp-btn-group">
-						<a class="hp-btn hp-btn-sm" href="<?= ($s["ssl"] ? "https://" : "http://") . e($s["domain"]) ?>/" target="_blank" rel="noopener"><i class="fas fa-arrow-up-right-from-square"></i><span class="hp-hide-sm">Abrir</span></a>
-						<a class="hp-btn hp-btn-sm" href="/pro/site/?<?= e(http_build_query(["user" => $s["user"], "domain" => $s["domain"]])) ?>"><i class="fas fa-gear"></i><span class="hp-hide-sm">Gestionar</span></a>
+						<a class="hp-btn hp-btn-sm" href="<?= ($s["ssl"] ? "https://" : "http://") . e($s["domain"]) ?>/" target="_blank" rel="noopener"><i class="fas fa-arrow-up-right-from-square"></i><span class="hp-hide-sm"><?= __e('Abrir') ?></span></a>
+						<a class="hp-btn hp-btn-sm" href="/pro/site/?<?= e(http_build_query(["user" => $s["user"], "domain" => $s["domain"]])) ?>"><i class="fas fa-gear"></i><span class="hp-hide-sm"><?= __e('Gestionar') ?></span></a>
 					</div>
 				</div>
 			</div>

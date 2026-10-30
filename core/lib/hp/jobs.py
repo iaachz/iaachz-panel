@@ -12,6 +12,7 @@ import sys
 import time
 
 from .common import DATA, HPError, ensure_dir, load_json, now, save_json
+from .i18n import lang, tr
 
 JOBS = DATA + "/jobs"
 KEEP = 150
@@ -27,7 +28,7 @@ def start(owner, title, argv):
     """Lanza `v-hp <argv...>` desacoplado. Devuelve el id de la tarea."""
     ensure_dir(JOBS)
     jid = time.strftime("%Y%m%d%H%M%S") + secrets.token_hex(3)
-    meta = {"id": jid, "owner": owner, "title": title, "status": "running",
+    meta = {"id": jid, "owner": owner, "title": tr(title), "status": "running",
             "started": now(), "ended": None, "argv": argv[:1]}
     save_json(_meta_path(jid), meta)
     log = open(f"{JOBS}/{jid}.log", "w")
@@ -36,7 +37,7 @@ def start(owner, title, argv):
                      stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT,
                      start_new_session=True, close_fds=True,
                      env={"PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-                          "HOME": "/root", "LANG": "C.UTF-8", "HP_JOB": jid})
+                          "HOME": "/root", "LANG": "C.UTF-8", "HP_JOB": jid, "HP_LANG": lang()})
     _prune()
     return jid
 
@@ -45,13 +46,13 @@ def finish(jid, ok, error=None):
     meta = load_json(_meta_path(jid), {})
     meta.update({"status": "ok" if ok else "error", "ended": now()})
     if error:
-        meta["error"] = str(error)[-2000:]
+        meta["error"] = tr(str(error))[-2000:]
     save_json(_meta_path(jid), meta)
 
 
 def step(name, status="ok", detail=""):
     """Marca un paso con progreso estructurado dentro del log de la tarea."""
-    print("::step::" + json.dumps({"name": name, "status": status, "detail": detail}, ensure_ascii=False), flush=True)
+    print("::step::" + json.dumps({"name": tr(name), "status": status, "detail": tr(detail)}, ensure_ascii=False), flush=True)
 
 
 def status(jid, owner=None, offset=0):

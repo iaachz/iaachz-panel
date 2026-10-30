@@ -9,4 +9,4 @@ foreach ($users as $u) {
 	}
 }
 usort($dbs, fn($a, $b) => [$a["OWNER"], $a["NAME"]] <=> [$b["OWNER"], $b["NAME"]]);
-hp_render("Bases de datos", "db", "databases", compact("dbs"));
+hp_render(__('Bases de datos'), "db", "databases", compact("dbs"));

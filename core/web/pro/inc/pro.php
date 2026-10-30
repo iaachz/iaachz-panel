@@ -3,6 +3,7 @@
 use function Hestiacp\quoteshellarg\quoteshellarg;
 
 include $_SERVER["DOCUMENT_ROOT"] . "/inc/main.php";
+require_once __DIR__ . "/i18n.php";
 
 const HP_VERSION = "1.0.0";
 
@@ -58,7 +59,7 @@ function hp_target_label(string $ip): string {
 
 // Ejecuta `v-hp ARGS` y devuelve el JSON decodificado. Si falla, deja el error en $err y devuelve null.
 function hp_run(array $args, ?string &$err = null) {
-	$cmd = HESTIA_CMD . "v-hp " . implode(" ", array_map(fn($a) => quoteshellarg((string) $a), $args));
+	$cmd = HESTIA_CMD . "v-hp " . quoteshellarg("--lang=" . hp_lang()) . " " . implode(" ", array_map(fn($a) => quoteshellarg((string) $a), $args));
 	exec($cmd, $output, $rc);
 	$raw = implode("\n", $output);
 	$data = json_decode($raw, true);
@@ -97,7 +98,7 @@ function hp_bytes($n, int $dec = 1): string {
 		$n /= 1024;
 		$i++;
 	}
-	return number_format($n, $i ? $dec : 0, ",", ".") . " " . $u[$i];
+	return (hp_lang() === "en" ? number_format($n, $i ? $dec : 0, ".", ",") : number_format($n, $i ? $dec : 0, ",", ".")) . " " . $u[$i];
 }
 
 // Hestia guarda los usos de disco/ancho de banda en MB.
@@ -122,13 +123,13 @@ function hp_redirect(string $url): void {
 function hp_hosting_meta(string $type): array {
 	return [
 		"php" => ["PHP", "PHP"],
-		"static" => ["Estático", '<i class="fas fa-file-code"></i>'],
+		"static" => [__("Estático"), '<i class="fas fa-file-code"></i>'],
 		"node" => ["Node.js", "JS"],
 		"python" => ["Python", "PY"],
 		"docker" => ["Docker", '<i class="fas fa-box"></i>'],
 		"proxy" => ["Proxy", '<i class="fas fa-right-left"></i>'],
 		"wordpress" => ["WordPress", "WP"],
-		"none" => ["Solo DNS/correo", '<i class="fas fa-at"></i>'],
+		"none" => [__("Solo DNS/correo"), '<i class="fas fa-at"></i>'],
 	][$type] ?? [$type, '<i class="fas fa-globe"></i>'];
 }
 
@@ -139,12 +140,12 @@ function hp_type_chip(string $type, string $size = ""): string {
 
 function hp_state_badge(?string $state): string {
 	$map = [
-		"running" => ["En marcha", "ok"],
-		"starting" => ["Iniciando", "warn"],
-		"stopped" => ["Detenida", "muted"],
-		"disabled" => ["Deshabilitada", "muted"],
-		"failed" => ["Con error", "danger"],
-		"missing" => ["Sin contenedor", "danger"],
+		"running" => [__("En marcha"), "ok"],
+		"starting" => [__("Iniciando"), "warn"],
+		"stopped" => [__("Detenida"), "muted"],
+		"disabled" => [__("Deshabilitada"), "muted"],
+		"failed" => [__("Con error"), "danger"],
+		"missing" => [__("Sin contenedor"), "danger"],
 	];
 	[$label, $cls] = $map[$state ?? ""] ?? [$state ?: "—", "muted"];
 	return '<span class="hp-badge hp-badge-' . $cls . '"><i class="fas fa-circle"></i>' . e($label) . "</span>";

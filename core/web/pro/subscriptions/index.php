@@ -13,4 +13,4 @@ $appsByUser = [];
 foreach ($apps as $a) {
 	$appsByUser[$a["user"]] = ($appsByUser[$a["user"]] ?? 0) + 1;
 }
-hp_render("Suscripciones", "subs", "subscriptions", compact("users", "byUser", "appsByUser"));
+hp_render(__('Suscripciones'), "subs", "subscriptions", compact("users", "byUser", "appsByUser"));

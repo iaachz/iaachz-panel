@@ -1,36 +1,36 @@
 <?php
-$sub = $status["installed"] ? "Docker " . e($status["version"] ?? "") . " · Compose " . e($status["compose"] ?? "") . ($status["active"] ? "" : " · <b style='color:var(--hp-danger)'>servicio detenido</b>") : "Docker no está instalado";
-hp_page_header("Docker", $sub, [], $status["installed"] ? '<button type="button" class="hp-btn hp-btn-primary" x-data x-on:click="$dispatch(\'hp-docker-run\')"><i class="fas fa-play"></i>Ejecutar contenedor</button>' : "");
+$sub = $status["installed"] ? "Docker " . e($status["version"] ?? "") . __(' · Compose ') . e($status["compose"] ?? "") . ($status["active"] ? "" : (" · " . "<b style='color:var(--hp-danger)'>" . __('servicio detenido') . "</b>")) : __('Docker no está instalado');
+hp_page_header("Docker", $sub, [], $status["installed"] ? ('<button type="button" class="hp-btn hp-btn-primary" x-data x-on:click="$dispatch(\'hp-docker-run\')">' . '<i class="fas fa-play">' . '</i>' . __('Ejecutar contenedor') . '</button>') : "");
 ?>
 <?php if (!$status["installed"]) { ?>
 	<div class="hp-card" x-data>
 		<div class="hp-empty">
 			<span class="hp-chip hp-chip-docker hp-chip-lg" style="margin-bottom:14px"><i class="fas fa-box"></i></span>
-			<h3>Instala Docker en un clic</h3>
-			<p>Se instalan <code>docker.io</code> y <code>docker compose</code> desde los repositorios de Ubuntu, con rotación de registros.<br>Después podrás publicar cualquier imagen en un dominio con SSL, como en Plesk.</p>
-			<button type="button" class="hp-btn hp-btn-primary" x-on:click="HP.runJob('docker-install', {}, 'Instalando Docker').then(() => location.reload()).catch(e => HP.toast(e.message, 'error'))"><i class="fas fa-download"></i>Instalar Docker</button>
+			<h3><?= __e('Instala Docker en un clic') ?></h3>
+			<p><?= __e('Se instalan') ?> <code>docker.io</code> y <code><?= __e('docker compose') ?></code> <?= __e('desde los repositorios de Ubuntu, con rotación de registros.') ?><br><?= __e('Después podrás publicar cualquier imagen en un dominio con SSL, como en Plesk.') ?></p>
+			<button type="button" class="hp-btn hp-btn-primary" x-on:click="HP.runJob('docker-install', {}, 'Instalando Docker').then(() => location.reload()).catch(e => HP.toast(e.message, 'error'))"><i class="fas fa-download"></i><?= __e('Instalar Docker') ?></button>
 		</div>
 	</div>
 <?php } else { ?>
 <div x-data="hpDocker" x-on:hp-docker-run.window="openRun()">
 	<div class="hp-tabs">
-		<button class="hp-tab" :class="tab === 'containers' && 'active'" x-on:click="tab = 'containers'"><i class="fas fa-box"></i>Contenedores <span class="hp-badge hp-badge-muted" x-text="containers ? containers.length : '…'"></span></button>
-		<button class="hp-tab" :class="tab === 'images' && 'active'" x-on:click="tab = 'images'; loadImages()"><i class="fas fa-layer-group"></i>Imágenes</button>
-		<button class="hp-tab" :class="tab === 'compose' && 'active'" x-on:click="tab = 'compose'; loadStacks()"><i class="fas fa-diagram-project"></i>Pilas Compose</button>
+		<button class="hp-tab" :class="tab === 'containers' && 'active'" x-on:click="tab = 'containers'"><i class="fas fa-box"></i><?= __e('Contenedores') ?> <span class="hp-badge hp-badge-muted" x-text="containers ? containers.length : '…'"></span></button>
+		<button class="hp-tab" :class="tab === 'images' && 'active'" x-on:click="tab = 'images'; loadImages()"><i class="fas fa-layer-group"></i><?= __e('Imágenes') ?></button>
+		<button class="hp-tab" :class="tab === 'compose' && 'active'" x-on:click="tab = 'compose'; loadStacks()"><i class="fas fa-diagram-project"></i><?= __e('Pilas Compose') ?></button>
 	</div>
 
 	<!-- Contenedores -->
 	<div x-show="tab === 'containers'">
 		<div class="hp-card">
 			<div class="hp-card-head">
-				<h2 class="hp-card-title"><i class="fas fa-box"></i>Contenedores</h2>
-				<button type="button" class="hp-btn hp-btn-sm" x-on:click="load()"><i class="fas fa-rotate"></i>Actualizar</button>
+				<h2 class="hp-card-title"><i class="fas fa-box"></i><?= __e('Contenedores') ?></h2>
+				<button type="button" class="hp-btn hp-btn-sm" x-on:click="load()"><i class="fas fa-rotate"></i><?= __e('Actualizar') ?></button>
 			</div>
 			<div class="hp-card-body hp-flush hp-table-wrap">
 				<template x-if="!containers"><div class="hp-empty"><i class="fas fa-circle-notch fa-spin"></i></div></template>
-				<template x-if="containers && !containers.length"><div class="hp-empty"><i class="fas fa-box-open hp-empty-icon"></i><h3>Sin contenedores</h3><p>Ejecuta uno o publícalo en un dominio desde Aplicaciones.</p></div></template>
+				<template x-if="containers && !containers.length"><div class="hp-empty"><i class="fas fa-box-open hp-empty-icon"></i><h3><?= __e('Sin contenedores') ?></h3><p><?= __e('Ejecuta uno o publícalo en un dominio desde Aplicaciones.') ?></p></div></template>
 				<table class="hp-table" x-show="containers && containers.length">
-					<thead><tr><th>Nombre</th><th>Imagen</th><th>Estado</th><th>Puertos</th><th class="hp-right">CPU</th><th class="hp-right">Memoria</th><th class="hp-right">Acciones</th></tr></thead>
+					<thead><tr><th><?= __e('Nombre') ?></th><th><?= __e('Imagen') ?></th><th><?= __e('Estado') ?></th><th><?= __e('Puertos') ?></th><th class="hp-right">CPU</th><th class="hp-right"><?= __e('Memoria') ?></th><th class="hp-right"><?= __e('Acciones') ?></th></tr></thead>
 					<tbody>
 						<template x-for="c in containers" :key="c.ID">
 							<tr>
@@ -47,11 +47,11 @@ hp_page_header("Docker", $sub, [], $status["installed"] ? '<button type="button"
 								<td class="hp-right" x-text="c.CPUPerc || '—'"></td>
 								<td class="hp-right hp-nowrap hp-small" x-text="c.MemUsage || '—'"></td>
 								<td class="hp-right hp-nowrap">
-									<button type="button" class="hp-btn hp-btn-xs" x-show="c.State !== 'running'" title="Iniciar" x-on:click="act(c, 'start')"><i class="fas fa-play"></i></button>
-									<button type="button" class="hp-btn hp-btn-xs" x-show="c.State === 'running'" title="Detener" x-on:click="act(c, 'stop')"><i class="fas fa-stop"></i></button>
-									<button type="button" class="hp-btn hp-btn-xs" title="Reiniciar" x-on:click="act(c, 'restart')"><i class="fas fa-rotate"></i></button>
-									<button type="button" class="hp-btn hp-btn-xs" title="Registros" x-on:click="logs(c)"><i class="fas fa-file-lines"></i></button>
-									<button type="button" class="hp-btn hp-btn-xs hp-btn-danger" title="Eliminar" x-on:click="act(c, 'remove')"><i class="fas fa-trash"></i></button>
+									<button type="button" class="hp-btn hp-btn-xs" x-show="c.State !== 'running'" title="<?= __e('Iniciar') ?>" x-on:click="act(c, 'start')"><i class="fas fa-play"></i></button>
+									<button type="button" class="hp-btn hp-btn-xs" x-show="c.State === 'running'" title="<?= __e('Detener') ?>" x-on:click="act(c, 'stop')"><i class="fas fa-stop"></i></button>
+									<button type="button" class="hp-btn hp-btn-xs" title="<?= __e('Reiniciar') ?>" x-on:click="act(c, 'restart')"><i class="fas fa-rotate"></i></button>
+									<button type="button" class="hp-btn hp-btn-xs" title="<?= __e('Registros') ?>" x-on:click="logs(c)"><i class="fas fa-file-lines"></i></button>
+									<button type="button" class="hp-btn hp-btn-xs hp-btn-danger" title="<?= __e('Eliminar') ?>" x-on:click="act(c, 'remove')"><i class="fas fa-trash"></i></button>
 								</td>
 							</tr>
 						</template>
@@ -65,16 +65,16 @@ hp_page_header("Docker", $sub, [], $status["installed"] ? '<button type="button"
 	<div x-show="tab === 'images'" x-cloak>
 		<div class="hp-card">
 			<div class="hp-card-head">
-				<h2 class="hp-card-title"><i class="fas fa-layer-group"></i>Imágenes locales</h2>
+				<h2 class="hp-card-title"><i class="fas fa-layer-group"></i><?= __e('Imágenes locales') ?></h2>
 				<div class="hp-input-group" style="max-width:420px">
-					<input class="hp-input hp-mono" x-model="pullName" placeholder="nginx:alpine · postgres:16 · redis" x-on:keydown.enter="pull()">
-					<button type="button" class="hp-btn hp-btn-primary" x-on:click="pull()"><i class="fas fa-download"></i>Descargar</button>
+					<input class="hp-input hp-mono" x-model="pullName" placeholder="<?= __e('nginx:alpine · postgres:16 · redis') ?>" x-on:keydown.enter="pull()">
+					<button type="button" class="hp-btn hp-btn-primary" x-on:click="pull()"><i class="fas fa-download"></i><?= __e('Descargar') ?></button>
 				</div>
 			</div>
 			<div class="hp-card-body hp-flush hp-table-wrap">
 				<template x-if="!images"><div class="hp-empty"><i class="fas fa-circle-notch fa-spin"></i></div></template>
 				<table class="hp-table" x-show="images && images.length">
-					<thead><tr><th>Repositorio</th><th>Etiqueta</th><th>ID</th><th>Creada</th><th class="hp-right">Tamaño</th><th></th></tr></thead>
+					<thead><tr><th><?= __e('Repositorio') ?></th><th><?= __e('Etiqueta') ?></th><th>ID</th><th><?= __e('Creada') ?></th><th class="hp-right"><?= __e('Tamaño') ?></th><th></th></tr></thead>
 					<tbody>
 						<template x-for="i in images" :key="i.ID + i.Tag">
 							<tr>
@@ -84,14 +84,14 @@ hp_page_header("Docker", $sub, [], $status["installed"] ? '<button type="button"
 								<td class="hp-small" x-text="i.CreatedSince"></td>
 								<td class="hp-right" x-text="i.Size"></td>
 								<td class="hp-right hp-nowrap">
-									<button type="button" class="hp-btn hp-btn-xs" title="Ejecutar" x-on:click="openRun(i.Repository + ':' + i.Tag)"><i class="fas fa-play"></i></button>
-									<button type="button" class="hp-btn hp-btn-xs hp-btn-danger" title="Eliminar" x-on:click="rmi(i)"><i class="fas fa-trash"></i></button>
+									<button type="button" class="hp-btn hp-btn-xs" title="<?= __e('Ejecutar') ?>" x-on:click="openRun(i.Repository + ':' + i.Tag)"><i class="fas fa-play"></i></button>
+									<button type="button" class="hp-btn hp-btn-xs hp-btn-danger" title="<?= __e('Eliminar') ?>" x-on:click="rmi(i)"><i class="fas fa-trash"></i></button>
 								</td>
 							</tr>
 						</template>
 					</tbody>
 				</table>
-				<template x-if="images && !images.length"><div class="hp-empty">No hay imágenes descargadas.</div></template>
+				<template x-if="images && !images.length"><div class="hp-empty"><?= __e('No hay imágenes descargadas.') ?></div></template>
 			</div>
 		</div>
 	</div>
@@ -101,24 +101,24 @@ hp_page_header("Docker", $sub, [], $status["installed"] ? '<button type="button"
 		<div class="hp-grid hp-grid-main">
 			<div class="hp-card">
 				<div class="hp-card-head">
-					<h2 class="hp-card-title"><i class="fas fa-file-code"></i><span x-text="stack.name ? 'Pila: ' + stack.name : 'Nueva pila'"></span></h2>
-					<button type="button" class="hp-btn hp-btn-sm" x-on:click="newStack()"><i class="fas fa-plus"></i>Nueva</button>
+					<h2 class="hp-card-title"><i class="fas fa-file-code"></i><span x-text="stack.name ? HP.t('Pila: ') + stack.name : HP.t('Nueva pila')"></span></h2>
+					<button type="button" class="hp-btn hp-btn-sm" x-on:click="newStack()"><i class="fas fa-plus"></i><?= __e('Nueva') ?></button>
 				</div>
 				<div class="hp-card-body hp-form">
-					<div class="hp-field" style="max-width:320px"><label>Nombre</label><input class="hp-input" x-model="stack.name" :readonly="stack.saved" placeholder="mi-proyecto"></div>
+					<div class="hp-field" style="max-width:320px"><label><?= __e('Nombre') ?></label><input class="hp-input" x-model="stack.name" :readonly="stack.saved" placeholder="mi-proyecto"></div>
 					<div class="hp-field"><label>compose.yaml</label><textarea class="hp-textarea" style="min-height:300px" x-model="stack.yaml" spellcheck="false"></textarea></div>
 					<div class="hp-field"><label>Variables (.env)</label><textarea class="hp-textarea" style="min-height:80px" x-model="stack.env" placeholder="POSTGRES_PASSWORD=..." spellcheck="false"></textarea></div>
-					<p class="hp-hint" style="margin:0">Consejo: publica los puertos como <code>"127.0.0.1:8080:80"</code> y crea un dominio con hosting <b>Proxy</b> hacia <code>http://127.0.0.1:8080</code> para tener SSL.</p>
+					<p class="hp-hint" style="margin:0"><?= __e('Consejo: publica los puertos como') ?> <code>"127.0.0.1:8080:80"</code> <?= __e('y crea un dominio con hosting') ?> <b>Proxy</b> hacia <code>http://127.0.0.1:8080</code> <?= __e('para tener SSL.') ?></p>
 					<div class="hp-btn-group">
-						<button type="button" class="hp-btn hp-btn-primary" x-on:click="saveStack(true)"><i class="fas fa-rocket"></i>Guardar y desplegar</button>
-						<button type="button" class="hp-btn" x-on:click="saveStack(false)"><i class="fas fa-floppy-disk"></i>Solo guardar</button>
+						<button type="button" class="hp-btn hp-btn-primary" x-on:click="saveStack(true)"><i class="fas fa-rocket"></i><?= __e('Guardar y desplegar') ?></button>
+						<button type="button" class="hp-btn" x-on:click="saveStack(false)"><i class="fas fa-floppy-disk"></i><?= __e('Solo guardar') ?></button>
 					</div>
 				</div>
 			</div>
 			<div class="hp-card">
-				<div class="hp-card-head"><h2 class="hp-card-title"><i class="fas fa-diagram-project"></i>Pilas</h2></div>
+				<div class="hp-card-head"><h2 class="hp-card-title"><i class="fas fa-diagram-project"></i><?= __e('Pilas') ?></h2></div>
 				<div class="hp-card-body hp-flush">
-					<template x-if="stacks && !stacks.length"><div class="hp-empty">Sin pilas todavía.</div></template>
+					<template x-if="stacks && !stacks.length"><div class="hp-empty"><?= __e('Sin pilas todavía.') ?></div></template>
 					<template x-for="s in (stacks || [])" :key="s.name">
 						<div class="hp-advice">
 							<i class="fas fa-diagram-project" style="color:var(--hp-primary)"></i>
@@ -128,8 +128,8 @@ hp_page_header("Docker", $sub, [], $status["installed"] ? '<button type="button"
 								<div class="hp-btn-group hp-mt" style="margin-top:6px">
 									<button type="button" class="hp-btn hp-btn-xs" x-on:click="stackAct(s.name, 'up')"><i class="fas fa-play"></i>Up</button>
 									<button type="button" class="hp-btn hp-btn-xs" x-on:click="stackAct(s.name, 'restart')"><i class="fas fa-rotate"></i></button>
-									<button type="button" class="hp-btn hp-btn-xs" x-on:click="stackAct(s.name, 'pull')" title="Actualizar imágenes"><i class="fas fa-download"></i></button>
-									<button type="button" class="hp-btn hp-btn-xs" x-on:click="stackAct(s.name, 'down')"><i class="fas fa-stop"></i>Down</button>
+									<button type="button" class="hp-btn hp-btn-xs" x-on:click="stackAct(s.name, 'pull')" title="<?= __e('Actualizar imágenes') ?>"><i class="fas fa-download"></i></button>
+									<button type="button" class="hp-btn hp-btn-xs" x-on:click="stackAct(s.name, 'down')"><i class="fas fa-stop"></i><?= __e('Down') ?></button>
 									<button type="button" class="hp-btn hp-btn-xs hp-btn-danger" x-on:click="stackDelete(s.name)"><i class="fas fa-trash"></i></button>
 								</div>
 							</div>
@@ -142,11 +142,11 @@ hp_page_header("Docker", $sub, [], $status["installed"] ? '<button type="button"
 
 	<!-- Ejecutar contenedor -->
 	<dialog class="hp-modal" x-ref="run">
-		<div class="hp-modal-head"><h3>Ejecutar contenedor</h3><button type="button" class="hp-icon-btn" x-on:click="$refs.run.close()"><i class="fas fa-xmark"></i></button></div>
+		<div class="hp-modal-head"><h3><?= __e('Ejecutar contenedor') ?></h3><button type="button" class="hp-icon-btn" x-on:click="$refs.run.close()"><i class="fas fa-xmark"></i></button></div>
 		<div class="hp-modal-body hp-form">
 			<div class="hp-form-row">
-				<div class="hp-field"><label>Imagen</label><input class="hp-input hp-mono" x-model="run.image" placeholder="redis:7"></div>
-				<div class="hp-field"><label>Nombre</label><input class="hp-input" x-model="run.name" placeholder="mi-redis"></div>
+				<div class="hp-field"><label><?= __e('Imagen') ?></label><input class="hp-input hp-mono" x-model="run.image" placeholder="redis:7"></div>
+				<div class="hp-field"><label><?= __e('Nombre') ?></label><input class="hp-input" x-model="run.name" placeholder="mi-redis"></div>
 			</div>
 			<div class="hp-field">
 				<label>Puertos (servidor → contenedor)</label>
@@ -155,37 +155,37 @@ hp_page_header("Docker", $sub, [], $status["installed"] ? '<button type="button"
 						<input class="hp-input" type="number" placeholder="8080" x-model.number="p.host" style="max-width:130px">
 						<i class="fas fa-arrow-right hp-muted"></i>
 						<input class="hp-input" type="number" placeholder="80" x-model.number="p.container" style="max-width:130px">
-						<label class="hp-check" style="margin-left:8px"><input type="checkbox" x-model="p.public"><span><small>Público (0.0.0.0)</small></span></label>
+						<label class="hp-check" style="margin-left:8px"><input type="checkbox" x-model="p.public"><span><small><?= __e('Público (0.0.0.0)') ?></small></span></label>
 						<button type="button" class="hp-btn hp-btn-ghost hp-btn-sm" x-on:click="run.ports.splice(i, 1)"><i class="fas fa-xmark"></i></button>
 					</div>
 				</template>
-				<button type="button" class="hp-btn hp-btn-sm" x-on:click="run.ports.push({host: '', container: '', public: false})"><i class="fas fa-plus"></i>Puerto</button>
-				<p class="hp-hint">Sin marcar "Público" solo se accede desde el propio servidor (ideal para usarlo con un dominio en modo Proxy).</p>
+				<button type="button" class="hp-btn hp-btn-sm" x-on:click="run.ports.push({host: '', container: '', public: false})"><i class="fas fa-plus"></i><?= __e('Puerto') ?></button>
+				<p class="hp-hint"><?= __e('Sin marcar "Público" solo se accede desde el propio servidor (ideal para usarlo con un dominio en modo Proxy).') ?></p>
 			</div>
 			<div class="hp-field">
-				<label>Volúmenes (ruta o volumen con nombre → ruta del contenedor)</label>
+				<label><?= __e('Volúmenes (ruta o volumen con nombre → ruta del contenedor)') ?></label>
 				<template x-for="(v, i) in run.volumes" :key="i">
 					<div class="hp-flex" style="margin-bottom:6px">
-						<input class="hp-input hp-mono" placeholder="datos-redis o /opt/datos" x-model="v.host">
+						<input class="hp-input hp-mono" placeholder="<?= __e('datos-redis o /opt/datos') ?>" x-model="v.host">
 						<i class="fas fa-arrow-right hp-muted"></i>
 						<input class="hp-input hp-mono" placeholder="/data" x-model="v.container">
 						<button type="button" class="hp-btn hp-btn-ghost hp-btn-sm" x-on:click="run.volumes.splice(i, 1)"><i class="fas fa-xmark"></i></button>
 					</div>
 				</template>
-				<button type="button" class="hp-btn hp-btn-sm" x-on:click="run.volumes.push({host: '', container: ''})"><i class="fas fa-plus"></i>Volumen</button>
+				<button type="button" class="hp-btn hp-btn-sm" x-on:click="run.volumes.push({host: '', container: ''})"><i class="fas fa-plus"></i><?= __e('Volumen') ?></button>
 			</div>
 			<div class="hp-field">
-				<label>Variables de entorno</label>
-				<textarea class="hp-textarea" style="min-height:70px" x-model="run.envText" placeholder="CLAVE=valor (una por línea)"></textarea>
+				<label><?= __e('Variables de entorno') ?></label>
+				<textarea class="hp-textarea" style="min-height:70px" x-model="run.envText" placeholder="<?= __e('CLAVE=valor (una por línea)') ?>"></textarea>
 			</div>
 			<div class="hp-form-row">
-				<div class="hp-field"><label>Reinicio</label><select class="hp-select" x-model="run.restart"><option value="unless-stopped">Siempre (salvo detenido)</option><option value="always">Siempre</option><option value="on-failure">Solo si falla</option><option value="no">Nunca</option></select></div>
-				<div class="hp-field"><label>Límite de memoria (MB)</label><input class="hp-input" type="number" x-model.number="run.memory_mb" placeholder="0 = sin límite"></div>
+				<div class="hp-field"><label><?= __e('Reinicio') ?></label><select class="hp-select" x-model="run.restart"><option value="unless-stopped">Siempre (salvo detenido)</option><option value="always"><?= __e('Siempre') ?></option><option value="on-failure"><?= __e('Solo si falla') ?></option><option value="no"><?= __e('Nunca') ?></option></select></div>
+				<div class="hp-field"><label><?= __e('Límite de memoria (MB)') ?></label><input class="hp-input" type="number" x-model.number="run.memory_mb" placeholder="<?= __e('0 = sin límite') ?>"></div>
 			</div>
 		</div>
 		<div class="hp-modal-foot">
-			<button type="button" class="hp-btn" x-on:click="$refs.run.close()">Cancelar</button>
-			<button type="button" class="hp-btn hp-btn-primary" x-on:click="doRun()"><i class="fas fa-play"></i>Ejecutar</button>
+			<button type="button" class="hp-btn" x-on:click="$refs.run.close()"><?= __e('Cancelar') ?></button>
+			<button type="button" class="hp-btn hp-btn-primary" x-on:click="doRun()"><i class="fas fa-play"></i><?= __e('Ejecutar') ?></button>
 		</div>
 	</dialog>
 </div>
@@ -214,18 +214,18 @@ document.addEventListener('alpine:init', () => {
 			try { this.stacks = await HP.api('compose-list'); } catch (e) { HP.toast(e.message, 'error'); }
 		},
 		async act(c, what) {
-			if (what === 'remove' && !(await HP.confirm('¿Eliminar el contenedor ' + c.Names + '? Los datos que no estén en volúmenes se pierden.', { danger: true, ok: 'Eliminar' }))) return;
-			try { await HP.api('docker-action', { id: c.Names, what }); HP.toast('Hecho'); this.load(); } catch (e) { HP.toast(e.message, 'error'); }
+			if (what === 'remove' && !(await HP.confirm(HP.t('¿Eliminar el contenedor ') + c.Names + HP.t('? Los datos que no estén en volúmenes se pierden.'), { danger: true, ok: HP.t('Eliminar') }))) return;
+			try { await HP.api('docker-action', { id: c.Names, what }); HP.toast(HP.t('Hecho')); this.load(); } catch (e) { HP.toast(e.message, 'error'); }
 		},
 		logs(c) {
-			HP.logs('Registros de ' + c.Names, () => HP.api('docker-logs', { id: c.Names, lines: 500 }));
+			HP.logs(HP.t('Registros de ') + c.Names, () => HP.api('docker-logs', { id: c.Names, lines: 500 }));
 		},
 		async pull() {
 			if (!this.pullName) return;
-			try { await HP.runJob('docker-pull', { image: this.pullName }, 'Descargando ' + this.pullName, { autoClose: true }); this.pullName = ''; this.loadImages(); } catch (e) { HP.toast(e.message, 'error'); }
+			try { await HP.runJob('docker-pull', { image: this.pullName }, HP.t('Descargando ') + this.pullName, { autoClose: true }); this.pullName = ''; this.loadImages(); } catch (e) { HP.toast(e.message, 'error'); }
 		},
 		async rmi(i) {
-			if (!(await HP.confirm('¿Eliminar la imagen ' + i.Repository + ':' + i.Tag + '?', { danger: true, ok: 'Eliminar' }))) return;
+			if (!(await HP.confirm(HP.t('¿Eliminar la imagen ') + i.Repository + ':' + i.Tag + '?', { danger: true, ok: HP.t('Eliminar') }))) return;
 			try { await HP.api('docker-rmi', { id: i.Repository + ':' + i.Tag }); this.loadImages(); } catch (e) { HP.toast(e.message, 'error'); }
 		},
 		openRun(image) {
@@ -241,7 +241,7 @@ document.addEventListener('alpine:init', () => {
 			const container = Object.assign({}, this.run, { env });
 			delete container.envText;
 			this.$refs.run.close();
-			try { await HP.runJob('docker-run', { container }, 'Creando ' + this.run.name); this.tab = 'containers'; this.load(); } catch (e) { HP.toast(e.message, 'error'); }
+			try { await HP.runJob('docker-run', { container }, HP.t('Creando ') + this.run.name); this.tab = 'containers'; this.load(); } catch (e) { HP.toast(e.message, 'error'); }
 		},
 		newStack() {
 			this.stack = { name: '', yaml: 'services:\n  app:\n    image: \n    restart: unless-stopped\n', env: '', saved: false };
@@ -252,18 +252,18 @@ document.addEventListener('alpine:init', () => {
 		async saveStack(deploy) {
 			try {
 				const r = await HP.api('compose-save', { name: this.stack.name, yaml: this.stack.yaml, env: this.stack.env });
-				if (r.warning) HP.toast('Aviso de compose: ' + r.warning, 'error');
+				if (r.warning) HP.toast(HP.t('Aviso de compose: ') + r.warning, 'error');
 				this.stack.saved = true;
-				if (deploy) await HP.runJob('compose-action', { name: this.stack.name, what: 'up' }, 'Desplegando ' + this.stack.name);
-				else HP.toast('Pila guardada');
+				if (deploy) await HP.runJob('compose-action', { name: this.stack.name, what: 'up' }, HP.t('Desplegando ') + this.stack.name);
+				else HP.toast(HP.t('Pila guardada'));
 				this.loadStacks();
 			} catch (e) { HP.toast(e.message, 'error'); }
 		},
 		async stackAct(name, what) {
-			try { await HP.runJob('compose-action', { name, what }, 'docker compose ' + what + ' · ' + name, { autoClose: what !== 'up' }); this.loadStacks(); } catch (e) { HP.toast(e.message, 'error'); }
+			try { await HP.runJob('compose-action', { name, what }, HP.t('docker compose ') + what + ' · ' + name, { autoClose: what !== 'up' }); this.loadStacks(); } catch (e) { HP.toast(e.message, 'error'); }
 		},
 		async stackDelete(name) {
-			if (!(await HP.confirm('¿Detener y eliminar la pila ' + name + '? Los volúmenes con nombre se conservan.', { danger: true, ok: 'Eliminar' }))) return;
+			if (!(await HP.confirm(HP.t('¿Detener y eliminar la pila ') + name + HP.t('? Los volúmenes con nombre se conservan.'), { danger: true, ok: HP.t('Eliminar') }))) return;
 			try { await HP.api('compose-delete', { name }); this.loadStacks(); if (this.stack.name === name) this.newStack(); } catch (e) { HP.toast(e.message, 'error'); }
 		},
 	}));

@@ -1,13 +1,13 @@
 <?php
-$actions = '<a class="hp-btn" href="/list/package/"><i class="fas fa-box-archive"></i>Planes de servicio</a>'
-	. '<a class="hp-btn hp-btn-primary" href="/pro/new/?mode=subscription"><i class="fas fa-user-plus"></i>Nueva suscripción</a>';
-hp_page_header("Suscripciones", "Cada suscripción es un cliente con su plan, sus dominios, correo, bases de datos y aplicaciones.", [], $actions);
+$actions = ('<a class="hp-btn" href="/list/package/">' . '<i class="fas fa-box-archive">' . '</i>' . __('Planes de servicio') . '</a>')
+	. ('<a class="hp-btn hp-btn-primary" href="/pro/new/?mode=subscription">' . '<i class="fas fa-user-plus">' . '</i>' . __('Nueva suscripción') . '</a>');
+hp_page_header(__('Suscripciones'), __('Cada suscripción es un cliente con su plan, sus dominios, correo, bases de datos y aplicaciones.'), [], $actions);
 $tok = $_SESSION["token"];
 ?>
 <div x-data="{ q: '' }">
 	<div class="hp-card hp-mb">
 		<div class="hp-card-body">
-			<div class="hp-search" style="max-width:420px"><i class="fas fa-magnifying-glass"></i><input type="search" x-model="q" placeholder="Buscar cliente, correo o dominio…"></div>
+			<div class="hp-search" style="max-width:420px"><i class="fas fa-magnifying-glass"></i><input type="search" x-model="q" placeholder="<?= __e('Buscar cliente, correo o dominio…') ?>"></div>
 		</div>
 	</div>
 	<div class="hp-grid hp-grid-2">
@@ -27,8 +27,8 @@ $tok = $_SESSION["token"];
 							<span class="hp-avatar" style="width:44px;height:44px;font-size:1.1rem"><?= e(strtoupper(mb_substr($name, 0, 1))) ?></span>
 							<div style="min-width:0">
 								<div class="hp-flex hp-wrap"><b style="font-size:1.05rem;color:var(--hp-text)"><?= e($name) ?></b>
-									<?= $u["ROLE"] === "admin" ? '<span class="hp-badge hp-badge-primary">Administrador</span>' : "" ?>
-									<?= $suspended ? '<span class="hp-badge hp-badge-danger">Suspendida</span>' : '<span class="hp-badge hp-badge-ok"><i class="fas fa-circle"></i>Activa</span>' ?>
+									<?= $u["ROLE"] === "admin" ? ('<span class="hp-badge hp-badge-primary">' . __('Administrador') . '</span>') : "" ?>
+									<?= $suspended ? ('<span class="hp-badge hp-badge-danger">' . __('Suspendida') . '</span>') : ('<span class="hp-badge hp-badge-ok">' . '<i class="fas fa-circle">' . '</i>' . __('Activa') . '</span>') ?>
 								</div>
 								<div class="hp-muted hp-small"><?= e($u["NAME"]) ?> · <?= e($u["CONTACT"]) ?></div>
 							</div>
@@ -36,19 +36,19 @@ $tok = $_SESSION["token"];
 						<div class="hp-menu" x-data="{ open: false }">
 							<button type="button" class="hp-btn hp-btn-sm hp-btn-ghost" x-on:click="open = !open"><i class="fas fa-ellipsis-vertical"></i></button>
 							<div class="hp-menu-panel hp-menu-right" x-cloak x-show="open" x-on:click.outside="open = false">
-								<?php if (!$isRoot) { ?><a href="/login/?<?= e(http_build_query(["loginas" => $name, "token" => $tok])) ?>"><i class="fas fa-right-to-bracket"></i>Entrar como <?= e($name) ?></a><?php } ?>
-								<a href="/edit/user/?<?= e(http_build_query(["user" => $name, "token" => $tok])) ?>"><i class="fas fa-pen"></i>Editar cliente y plan</a>
-								<a href="/pro/new/?<?= e(http_build_query(["user" => $name])) ?>"><i class="fas fa-plus"></i>Agregar dominio</a>
+								<?php if (!$isRoot) { ?><a href="/login/?<?= e(http_build_query(["loginas" => $name, "token" => $tok])) ?>"><i class="fas fa-right-to-bracket"></i><?= __e("Entrar como %s", $name) ?></a><?php } ?>
+								<a href="/edit/user/?<?= e(http_build_query(["user" => $name, "token" => $tok])) ?>"><i class="fas fa-pen"></i><?= __e('Editar cliente y plan') ?></a>
+								<a href="/pro/new/?<?= e(http_build_query(["user" => $name])) ?>"><i class="fas fa-plus"></i><?= __e('Agregar dominio') ?></a>
 								<?php if (!$isRoot) { ?>
-									<a class="js-confirm-action" href="/<?= $suspended ? "unsuspend" : "suspend" ?>/user/?<?= e(http_build_query(["user" => $name, "token" => $tok])) ?>" data-confirm-title="<?= $suspended ? "Reactivar" : "Suspender" ?>" data-confirm-message="¿<?= $suspended ? "Reactivar" : "Suspender" ?> la suscripción <?= e($name) ?>?"><i class="fas <?= $suspended ? "fa-play" : "fa-pause" ?>"></i><?= $suspended ? "Reactivar" : "Suspender" ?></a>
-									<a class="hp-menu-danger js-confirm-action" href="/delete/user/?<?= e(http_build_query(["user" => $name, "token" => $tok])) ?>" data-confirm-title="Eliminar" data-confirm-message="¿Eliminar la suscripción <?= e($name) ?> con TODOS sus sitios, correos y bases de datos?"><i class="fas fa-trash"></i>Eliminar</a>
+									<a class="js-confirm-action" href="/<?= $suspended ? "unsuspend" : "suspend" ?>/user/?<?= e(http_build_query(["user" => $name, "token" => $tok])) ?>" data-confirm-title="<?= $suspended ? __('Reactivar') : __('Suspender') ?>" data-confirm-message="¿<?= $suspended ? __('Reactivar') : __('Suspender') ?> la suscripción <?= e($name) ?>?"><i class="fas <?= $suspended ? "fa-play" : "fa-pause" ?>"></i><?= $suspended ? __('Reactivar') : __('Suspender') ?></a>
+									<a class="hp-menu-danger js-confirm-action" href="/delete/user/?<?= e(http_build_query(["user" => $name, "token" => $tok])) ?>" data-confirm-title="Eliminar" data-confirm-message="¿Eliminar la suscripción <?= e($name) ?> con TODOS sus sitios, correos y bases de datos?"><i class="fas fa-trash"></i><?= __e('Eliminar') ?></a>
 								<?php } ?>
 							</div>
 						</div>
 					</div>
 
 					<div class="hp-domain-meta hp-mt">
-						<span class="hp-tag"><i class="fas fa-box-archive"></i>Plan <?= e($u["PACKAGE"]) ?></span>
+						<span class="hp-tag"><i class="fas fa-box-archive"></i><?= __e("Plan %s", $u["PACKAGE"]) ?></span>
 						<span class="hp-tag"><i class="fas fa-earth-americas"></i><?= (int) $u["U_WEB_DOMAINS"] ?> sitios</span>
 						<span class="hp-tag"><i class="fas fa-envelope"></i><?= (int) $u["U_MAIL_ACCOUNTS"] ?> buzones</span>
 						<span class="hp-tag"><i class="fas fa-database"></i><?= (int) $u["U_DATABASES"] ?> BD</span>
@@ -57,11 +57,11 @@ $tok = $_SESSION["token"];
 
 					<div class="hp-grid hp-grid-2 hp-mt" style="gap:14px">
 						<div>
-							<div class="hp-between hp-small"><span class="hp-muted">Disco</span><span><?= hp_mb($u["U_DISK"]) ?> / <?= hp_mb($u["DISK_QUOTA"]) ?></span></div>
+							<div class="hp-between hp-small"><span class="hp-muted"><?= __e('Disco') ?></span><span><?= hp_mb($u["U_DISK"]) ?> / <?= hp_mb($u["DISK_QUOTA"]) ?></span></div>
 							<div class="hp-progress is-<?= $diskPct >= 90 ? "danger" : ($diskPct >= 75 ? "warn" : "ok") ?>" style="margin-top:6px"><span style="width:<?= max(2, $diskPct) ?>%"></span></div>
 						</div>
 						<div>
-							<div class="hp-between hp-small"><span class="hp-muted">Tráfico del mes</span><span><?= hp_mb($u["U_BANDWIDTH"]) ?> / <?= hp_mb($u["BANDWIDTH"]) ?></span></div>
+							<div class="hp-between hp-small"><span class="hp-muted"><?= __e('Tráfico del mes') ?></span><span><?= hp_mb($u["U_BANDWIDTH"]) ?> / <?= hp_mb($u["BANDWIDTH"]) ?></span></div>
 							<div class="hp-progress is-<?= $bwPct >= 90 ? "danger" : ($bwPct >= 75 ? "warn" : "ok") ?>" style="margin-top:6px"><span style="width:<?= max(2, $bwPct) ?>%"></span></div>
 						</div>
 					</div>
@@ -75,7 +75,7 @@ $tok = $_SESSION["token"];
 									<?= $d["ssl"] ? '<i class="fas fa-lock" style="background:none;color:var(--hp-ok);width:auto;height:auto"></i>' : "" ?>
 								</a>
 							<?php } ?>
-							<?php if (count($doms) > 4) { ?><div class="hp-muted hp-small" style="padding:4px 8px">y <?= count($doms) - 4 ?> más…</div><?php } ?>
+							<?php if (count($doms) > 4) { ?><div class="hp-muted hp-small" style="padding:4px 8px"><?= __e("y %s más…", count($doms) - 4) ?></div><?php } ?>
 						</div>
 					<?php } ?>
 				</div>

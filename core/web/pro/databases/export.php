@@ -7,13 +7,13 @@ $user = hp_target_user((string) ($_GET["user"] ?? ""));
 $database = (string) ($_GET["database"] ?? "");
 $dbs = hp_vjson("v-list-databases", [$user]);
 if (!isset($dbs[$database])) {
-	hp_flash("error", "La base de datos no existe o no te pertenece");
+	hp_flash("error", __('La base de datos no existe o no te pertenece'));
 	hp_redirect("/pro/databases/");
 }
 [$rc, $out] = hp_v("v-dump-database", [$user, $database, "file", "gzip"]);
 $file = trim(strtok($out, "\n"));
 if ($rc !== 0 || !str_starts_with($file, "/backup/")) {
-	hp_flash("error", "No se pudo generar el volcado: " . $out);
+	hp_flash("error", __('No se pudo generar el volcado: ') . $out);
 	hp_redirect("/pro/databases/");
 }
 header("Content-Type: application/gzip");

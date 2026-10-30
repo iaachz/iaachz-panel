@@ -10,6 +10,7 @@ import subprocess
 import time
 
 from . import apps, metrics, sites
+from .i18n import tr
 from .common import DATA, hestia_conf, hestia_json, list_users, load_json, notify, run, save_json, settings, user_conf
 
 ALERT_STATE = DATA + "/alerts_state.json"
@@ -20,7 +21,7 @@ def advisor():
     items = []
 
     def add(level, title, detail, link=None, action=None):
-        items.append({"level": level, "title": title, "detail": detail, "link": link, "action": action})
+        items.append({"level": level, "title": tr(title), "detail": tr(detail), "link": link, "action": action})
 
     conf = hestia_conf()
     live = metrics.live()
@@ -96,7 +97,7 @@ def check_alerts():
     host = os.uname().nodename
 
     def alert(key, title, detail):
-        active[key] = {"title": title, "detail": detail}
+        active[key] = {"title": tr(title), "detail": tr(detail)}
 
     cpu = metrics.recent_avg("cpu", 5)
     if cfg["alert_cpu"] and cpu is not None and cpu >= cfg["alert_cpu"]:
@@ -137,7 +138,7 @@ def check_alerts():
             state[key] = {"sent": now, "title": a["title"]}
     for key in list(state):
         if key not in active:
-            notify("admin", "✔ Resuelto: " + state[key]["title"], "La condición volvió a la normalidad.")
+            notify("admin", tr("✔ Resuelto: %s").replace("%s", state[key]["title"]), tr("La condición volvió a la normalidad."))
             state.pop(key)
     save_json(ALERT_STATE, state)
     _cleanup_orphans()

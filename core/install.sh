@@ -93,9 +93,10 @@ chown root:root /var/lib/iaachz-panel && chmod 755 /var/lib/iaachz-panel
 chown hestiaweb:hestiaweb /var/lib/iaachz-panel/uploads && chmod 700 /var/lib/iaachz-panel/uploads
 chmod 700 $HESTIA/data/hp $HESTIA/data/hp/jobs /etc/iaachz-panel /etc/iaachz-panel/env
 cat > /etc/cron.d/iaachz-panel <<'EOF'
-# iaachz-panel: métricas cada minuto y alertas/limpieza cada 5 minutos
+# iaachz-panel: métricas y disponibilidad de los sitios cada minuto, alertas/limpieza cada 5 minutos
 * * * * * root /usr/local/hestia/bin/v-hp metrics-collect >/dev/null 2>&1
 */5 * * * * root /usr/local/hestia/bin/v-hp alerts-check >/dev/null 2>&1
+* * * * * root /usr/local/hestia/bin/v-hp uptime-check >/dev/null 2>&1
 EOF
 chmod 644 /etc/cron.d/iaachz-panel
 
@@ -139,6 +140,7 @@ WantedBy=multi-user.target
 EOF3
 systemctl daemon-reload
 systemctl enable iaachz-panel-firewall >/dev/null 2>&1 || true
+grep -q "uptime-check" /etc/cron.d/iaachz-panel || echo '* * * * * root /usr/local/hestia/bin/v-hp uptime-check >/dev/null 2>&1' >> /etc/cron.d/iaachz-panel
 grep -q "geo-update-cron" /etc/cron.d/iaachz-panel || echo '17 4 4 * * root /usr/local/hestia/bin/v-hp geo-update-cron >/dev/null 2>&1' >> /etc/cron.d/iaachz-panel
 # Si se activa el cortafuegos de Hestia, este vacía INPUT: su gancho custom.sh vuelve a poner nuestras reglas
 FWD=$HESTIA/data/firewall
