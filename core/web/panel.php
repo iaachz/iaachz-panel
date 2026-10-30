@@ -29,6 +29,13 @@ if ($hp_is_admin) {
 $hp_items[] = [__("Hosting"), null];
 $hp_items[] = ["apps", "/pro/apps/", "fa-cubes", __("Aplicaciones")];
 $hp_items[] = ["uptime", "/pro/uptime/", "fa-heart-pulse", __("Disponibilidad")];
+// Integraciones opcionales (NexoPanel): solo aparecen si el servidor las tiene instaladas
+if (empty($_SESSION["look"]) && is_file("/etc/nexopanel/transfers.json")) {
+	$hp_items[] = ["transfers", "/pro/transfers/", "fa-file-arrow-up", __("Archivos y transferencias")];
+}
+if ($hp_is_admin && is_file($_SERVER["HESTIA"] . "/bin/v-local-apps")) {
+	$hp_items[] = ["local-apps", "/pro/local-apps/", "fa-plug", __("Webs sin dominio")];
+}
 if ($hp_is_admin) {
 	$hp_items[] = ["docker", "/pro/docker/", "fa-box", __("Docker")];
 }

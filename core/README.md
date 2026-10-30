@@ -28,6 +28,17 @@ Se instala junto a Hestia sin reemplazar su motor: usa sus comandos `v-*` y aña
 
 También: estilo nuevo para la pantalla de acceso y las páginas nativas de Hestia, tema claro y oscuro, móvil.
 
+## Integraciones opcionales (NexoPanel)
+
+Dos pantallas se activan solas si el servidor tiene instalado NexoPanel (un proyecto aparte, no incluido en este repositorio); sin él no aparecen en el menú:
+
+| Pantalla | Se muestra si existe | Qué usa |
+|---|---|---|
+| **Webs sin dominio** (`/pro/local-apps/`, solo administrador) | `/usr/local/hestia/bin/v-local-apps` | Publica webs/apps por IP y puerto, sin DNS. La acción la hace `v-local-apps` (NexoPanel) |
+| **Archivos y transferencias** (`/pro/transfers/`) | `/etc/nexopanel/transfers.json` | Gestor de archivos lftp-web incrustado; `transfers/auth.php` es el endpoint interno que nginx consulta (`auth_request`) y que firma la sesión de Hestia. Necesita el bloque `location ^~ /pro/transfers/service/` en el nginx de Hestia |
+
+También se incluye `web/pro/assets/world.json` (mapa de países del Monitor → Seguridad y países, que antes faltaba en el repositorio).
+
 ## Cómo funciona
 
 - `bin/v-hp` + `lib/hp/*.py`: comando root (vía el `sudo` que Hestia ya permite para `/usr/local/hestia/bin/*`). Responde JSON. Lo lento (instalar, npm, pip, docker pull, Git, Let's Encrypt, asistente) corre como **tarea en segundo plano** con pasos y registro (`v-hp job-status ID`).

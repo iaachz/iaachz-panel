@@ -20,7 +20,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent / "core"
 LANG_DIR = ROOT / "web" / "pro" / "lang"
 
-PHP_CALL = re.compile(r"""(?<![\w$>])(?:__e?|HP\.t)\(\s*(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)")""")
+PHP_CALL = re.compile(r"""(?<![\w$])(?<!->)(?:__e?|HP\.t)\(\s*(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)")""")
 
 
 def unescape(s, q):
