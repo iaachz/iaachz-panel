@@ -1,0 +1,1 @@
+DPkg::Post-Invoke { "if [ -x /opt/hestia-subdominio/aplicar.sh ]; then /opt/hestia-subdominio/aplicar.sh >> /var/log/hestia-subdominio.log 2>&1 || true; fi"; };

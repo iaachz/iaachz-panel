@@ -1,0 +1,26 @@
+--- a/web/templates/pages/list_web.php
++++ b/web/templates/pages/list_web.php
+@@ -250,10 +250,22 @@
+ 								</a>
+ 							</li>
+ 						<?php } ?>
++						<?php /* hestia-custom:web-dns */ if (!preg_match("/-p([0-9]+)$/", $data[$key]["TPL"] ?? "")) { ?>
+ 						<li class="units-table-row-action" data-key-action="href">
+ 							<a
+ 								class="units-table-row-action-link"
+-								href="http://<?= tohtml($key) ?>/"
++								href="/list/dns-proveedor/?<?= tohtml(http_build_query(["domain" => $key])) ?>"
++								title="Registros DNS"
++							>
++								<i class="fas fa-globe icon-green"></i>
++								<span class="u-hide-desktop">Registros DNS</span>
++							</a>
++						</li>
++						<?php } ?>
++<li class="units-table-row-action" data-key-action="href">
++							<a
++								class="units-table-row-action-link"
++								href="<?php /* hestia-custom:visit-port */ echo tohtml(preg_match("/-p([0-9]+)$/", $data[$key]["TPL"] ?? "", $m) ? "http://" . $data[$key]["IP"] . ":" . $m[1] . "/" : "http://" . $key . "/"); ?>"
+ 								target="_blank"
+ 								rel="noopener"
+ 								title="<?= tohtml( _("Visit")) ?>"

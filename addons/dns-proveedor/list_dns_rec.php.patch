@@ -1,0 +1,13 @@
+--- a/web/templates/pages/list_dns_rec.php
++++ b/web/templates/pages/list_dns_rec.php
+@@ -4,6 +4,10 @@
+ 			<div class="toolbar-buttons">
+ 				<a class="button button-secondary button-back js-button-back" href="/list/dns/">
+ 					<i class="fas fa-arrow-left icon-blue"></i><?= tohtml( _("Back")) ?>
++				</a>
++				<!-- hestia-custom:dns-proveedor -->
++				<a href="/list/dns-proveedor/?<?= tohtml(http_build_query(array("domain" => $_GET["domain"]))) ?>" class="button button-secondary">
++					<i class="fas fa-copy icon-green"></i>Copiar al proveedor
+ 				</a>
+ 				<?php if ($read_only !== true) { ?>
+ 					<a href="/add/dns/?<?= tohtml(http_build_query(array("domain" => $_GET["domain"]))) ?>" class="button button-secondary js-button-create">

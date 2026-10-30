@@ -1,0 +1,13 @@
+# local scratch
+_src/
+_bin/
+_gpl3.txt
+__pycache__/
+*.pyc
+*.log
+*.bak*
+*.tgz
+.env
+*.key
+*.pem
+settings.json

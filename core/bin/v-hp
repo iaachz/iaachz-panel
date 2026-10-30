@@ -1,0 +1,251 @@
+#!/usr/bin/python3 -I
+# info: Hestia Pro — funciones estilo Plesk (apps Node.js/Python/Docker, métricas, Git, asistentes)
+# options: COMMAND [ARGS...]
+#
+# example: v-hp metrics-live
+# example: v-hp app-list admin
+#
+# Lo invoca el panel con sudo (igual que el resto de v-*). Siempre responde JSON.
+# Las operaciones largas devuelven {"job": ID}; su progreso se consulta con `v-hp job-status ID`.
+
+import os
+import sys
+import traceback
+
+sys.path.insert(0, "/opt/hestia-pro/lib")
+os.umask(0o022)
+
+from hp import advisor, apache, apps, db, docker, geo, git, jobs, metrics, pma, runtimes, sampler, sites, traffic, weblog  # noqa: E402
+from hp.common import (DATA, HPError, b64json, check_user, check_web_domain, ensure_dir, fail,  # noqa: E402
+                       hestia, list_users, load_json, out, save_json, settings)
+
+
+def _users(arg):
+    return list_users() if arg in ("all", "") else [check_user(arg)]
+
+
+def _runtime_install(kind, ver):
+    if kind == "node":
+        return runtimes.node_install(ver)
+    if kind == "python":
+        return runtimes.python_install(ver)
+    raise HPError("Tipo de entorno no válido")
+
+
+def _runtime_remove(kind, ver):
+    node, py = apps.in_use()
+    if kind == "node":
+        return runtimes.node_remove(ver, node)
+    if kind == "python":
+        return runtimes.python_remove(ver, py)
+    raise HPError("Tipo de entorno no válido")
+
+
+def _terminal_install():
+    jobs.step("Instalando la terminal web de Hestia", "running")
+    p = hestia("v-add-sys-web-terminal", check=False, timeout=1800)
+    print(p.stdout[-5000:] + p.stderr[-2000:])
+    if p.returncode != 0:
+        raise HPError("No se pudo instalar la terminal web")
+    jobs.step("Terminal web activada")
+    return {"ok": True}
+
+
+def _settings_set(b64):
+    data = b64json(b64)
+    cur = settings()
+    for k, v in data.items():
+        if k not in cur:
+            continue
+        if isinstance(cur[k], bool):
+            cur[k] = bool(v)
+        elif isinstance(cur[k], int):
+            cur[k] = max(0, min(int(v or 0), 1000))
+        else:
+            cur[k] = str(v)[:200]
+    ensure_dir(DATA)
+    save_json(DATA + "/settings.json", cur)
+    return cur
+
+
+def _traffic_domain(user, domain, rng):
+    check_web_domain(user, domain)
+    span = metrics.RANGES.get(rng, 86400)
+    return {"series": traffic.domain_series(domain, span), "top": traffic.top(span, domains=[domain])}
+
+
+def _weblog(user, domain, b64, admin="no", kind="access"):
+    f = b64json(b64)
+    domains = weblog.resolve(user, domain, admin == "yes")
+    if kind == "error":
+        return weblog.errors(domains, f.get("range", "24h"), f.get("q", ""))
+    return weblog.search(domains, str(f.get("status", "all")), f.get("ip", ""), f.get("q", ""), f.get("range", "24h"),
+                         f.get("bots", ""), f.get("limit", 300), f.get("cc", ""))
+
+
+def _geo_block(b64, client="-"):
+    f = b64json(b64)
+    client = "" if client == "-" else client
+    fn = geo.block_country if f.get("kind") == "country" else geo.block_ip
+    return fn(f.get("value", ""), f.get("scope", "server"), client, f.get("domain", ""), f.get("user", ""))
+
+
+def _app_save(user, domain, b64):
+    res = apps.save(user, domain, b64json(b64))
+    res["job"] = jobs.start(user, f"Aplicar aplicación de {domain}", ["app-apply", user, domain])
+    return res
+
+
+# comando -> (función, quién es dueño de la tarea si es en segundo plano, título)
+SYNC = {
+    "metrics-live": lambda: metrics.live(),
+    "metrics-collect": lambda: metrics.collect(),
+    "metrics-history": lambda rng="24h": metrics.history(rng),
+    "metrics-live-history": lambda: sampler.history(),
+    "services": lambda: metrics.services(),
+    "advisor": lambda: advisor.advisor(),
+    "alerts-check": lambda: advisor.check_alerts(),
+    "settings-get": lambda: settings(),
+    "settings-set": _settings_set,
+    "runtimes": lambda: dict(runtimes.summary(*apps.in_use()), apache=apache.status()),
+    "runtime-remove": _runtime_remove,
+    "jobs-list": lambda owner="": jobs.listing(owner or None),
+    "job-status": lambda jid, owner="": jobs.status(jid, owner or None),
+    "app-list": lambda user="all": apps.list_all(_users(user)),
+    "app-get": lambda user, domain: apps.get(user, domain),
+    "app-save": _app_save,
+    "app-action": lambda user, domain, what: apps.action(user, domain, what),
+    "app-delete": lambda user, domain: apps.delete(user, domain),
+    "app-cleanup": lambda user, domain: apps.cleanup_domain(check_user(user), domain) or {"ok": True},
+    "app-logs": lambda user, domain, n="200": apps.logs(user, domain, n),
+    "app-scripts": lambda user, domain: apps.scripts(user, domain),
+    "docker-status": lambda: runtimes.docker_status(),
+    "docker-ps": lambda: docker.containers(),
+    "docker-images": lambda: docker.images(),
+    "docker-info": lambda: docker.info(),
+    "docker-action": lambda cid, what: docker.container_action(cid, what),
+    "docker-logs": lambda cid, n="300": docker.container_logs(cid, n),
+    "docker-inspect": lambda cid: docker.container_inspect(cid),
+    "docker-rmi": lambda iid: docker.image_remove(iid),
+    "compose-list": lambda: docker.stacks(),
+    "compose-get": lambda name: docker.stack_get(name),
+    "compose-save": lambda name, b64: docker.stack_save(name, **{k: v for k, v in b64json(b64).items() if k in ("yaml", "env")}),
+    "compose-delete": lambda name: docker.stack_delete(name),
+    "git-get": lambda user, domain: git.get(user, domain),
+    "git-save": lambda user, domain, b64: git.save(user, domain, b64json(b64)),
+    "git-delete": lambda user, domain: git.delete(user, domain),
+    "git-key": lambda user: git.deploy_key(check_user(user)),
+    "site-list": lambda user="all": sites.list_sites(_users(user)),
+    "dns-check": lambda domain: sites.dns_check(domain),
+    "wp-info": lambda user, domain: sites.wp_info(user, domain),
+    "apache-status": lambda: apache.status(),
+    "apache-get": lambda user, domain: apache.get(user, domain),
+    "apache-disable": lambda user, domain: apache.disable(user, domain),
+    "apache-sync": lambda: apache.sync(),
+    "db-tables": lambda user, name: db.tables(user, name),
+    "pma-ticket": lambda user, name, bind="-": pma.ticket(user, name, bind),
+    "pma-cleanup": lambda: pma.cleanup(),
+    "traffic-top": lambda rng="24h": traffic.top(metrics.RANGES.get(rng, 86400)),
+    "traffic-domain": lambda user, domain, rng="24h": _traffic_domain(user, domain, rng),
+    "traffic-backfill": lambda: {"visitors": traffic.backfill(), "requests": traffic.backfill_requests(),
+                                 "minutes": traffic.rebuild_minutes()},
+    "weblog": _weblog,
+    "geo-status": lambda: geo.status(),
+    "geo-view": lambda: geo.view(),
+    "geo-map": lambda rng="24h": geo.map_data(rng),
+    "geo-site-set": lambda user, domain, b64: geo.site_set(user, domain, b64json(b64)),
+    "geo-check": lambda client="-", b64="": geo.check("" if client == "-" else client, b64json(b64) if b64 else None),
+    "geo-firewall-set": lambda b64, client="-": geo.firewall_set(b64json(b64), "" if client == "-" else client),
+    "geo-confirm": lambda: geo.confirm(),
+    "geo-block": _geo_block,
+    "geo-sync": lambda: geo.sync(),
+    "fw-rollback": lambda: geo.rollback(),
+    "fw-boot": lambda: geo.boot(),
+    "geo-update-cron": lambda: geo.update_db() if geo.status()["db"] else {"skipped": True},
+}
+
+# Tareas en segundo plano: comando -> (función, dueño(args), título(args))
+JOBS = {
+    "runtime-install": (_runtime_install, lambda a: "admin", lambda a: f"Instalar {a[0]} {a[1]}"),
+    "docker-install": (lambda: runtimes.docker_install(), lambda a: "admin", lambda a: "Instalar Docker"),
+    "terminal-install": (_terminal_install, lambda a: "admin", lambda a: "Activar terminal web"),
+    "app-apply": (lambda u, d: apps.apply_runtime(u, d), lambda a: a[0], lambda a: f"Aplicar aplicación de {a[1]}"),
+    "app-deps": (lambda u, d: apps.install_deps(u, d), lambda a: a[0], lambda a: f"Instalar dependencias de {a[1]}"),
+    "app-run-script": (lambda u, d, s: apps.run_script(u, d, s), lambda a: a[0], lambda a: f"npm run {a[2]} en {a[1]}"),
+    "docker-pull": (lambda img: docker.pull(img), lambda a: "admin", lambda a: f"Descargar imagen {a[0]}"),
+    "docker-run": (lambda b64: docker.run_container(b64json(b64)), lambda a: "admin", lambda a: "Crear contenedor"),
+    "compose-action": (lambda n, w: docker.stack_action(n, w), lambda a: "admin", lambda a: f"Compose {a[1]}: {a[0]}"),
+    "git-deploy": (lambda u, d: git.deploy(u, d), lambda a: a[0], lambda a: f"Desplegar Git en {a[1]}"),
+    "site-create": (lambda b64, owner="admin": sites.create(b64json(b64)), lambda a: a[1] if len(a) > 1 else "admin",
+                    lambda a: "Asistente de dominio: " + str(b64json(a[0]).get("domain", ""))),
+    "ssl-issue": (lambda u, d: sites.ssl_issue(u, d), lambda a: a[0], lambda a: f"Certificado SSL para {a[1]}"),
+    "wp-update": (lambda u, d: sites.wp_update(u, d), lambda a: a[0], lambda a: f"Actualizar WordPress de {a[1]}"),
+    "apache-install": (lambda: apache.install(), lambda a: "admin", lambda a: "Instalar Apache"),
+    "geo-install": (lambda: geo.install(), lambda a: "admin", lambda a: "Activar acceso por país"),
+    "geo-update": (lambda: geo.update_db(), lambda a: "admin", lambda a: "Actualizar base de países"),
+    "db-import": (lambda u, d, src, wipe="no": db.import_dump(u, d, src, wipe), lambda a: a[0],
+                  lambda a: f"Importar volcado en {a[1]}"),
+    "apache-enable": (lambda u, d, static="yes", ext="": apache.enable(u, d, static == "yes", ext or None),
+                      lambda a: a[0], lambda a: f"nginx + Apache para {a[1]}"),
+}
+
+
+def _precheck(cmd, args):
+    """Valida antes de lanzar una tarea, para que el error llegue al instante y no en el log."""
+    if cmd in ("app-apply", "app-deps", "app-run-script", "git-deploy", "ssl-issue", "wp-update", "apache-enable"):
+        check_web_domain(args[0], args[1])
+    if cmd == "git-deploy" and not git.load(args[0]).get(args[1]):
+        raise HPError("Este dominio no tiene repositorio configurado")
+    if cmd == "db-import":
+        db._check_db(args[0], args[1])
+        db.check_source(args[0], args[2])
+    if cmd == "site-create":
+        sites.precheck(b64json(args[0]))
+
+
+def main(argv):
+    if not argv:
+        fail("Uso: v-hp COMANDO [ARGS...]")
+    cmd, args = argv[0], argv[1:]
+    try:
+        if cmd == "_job-run":
+            jid, real, rargs = args[0], args[1], args[2:]
+            try:
+                res = JOBS[real][0](*rargs)
+                print("::result::" + __import__("json").dumps(res, ensure_ascii=False, default=str), flush=True)
+                jobs.finish(jid, True)
+            except Exception as e:
+                msg = str(e) if isinstance(e, HPError) else f"{type(e).__name__}: {e}"
+                if not isinstance(e, HPError):
+                    traceback.print_exc()
+                print("ERROR: " + msg, flush=True)
+                jobs.step(msg, "error")
+                jobs.finish(jid, False, msg)
+            return
+        if cmd == "sampler":  # servicio hestia-pro-sampler (no devuelve JSON: corre para siempre)
+            sampler.loop()
+            return
+        if cmd == "git-webhook":
+            user, domain, secret = args
+            git.webhook_check(user, domain, secret)
+            out({"job": jobs.start(user, f"Webhook Git: {domain}", ["git-deploy", user, domain])})
+            return
+        if cmd in JOBS:
+            _precheck(cmd, args)
+            fn, owner, title = JOBS[cmd]
+            out({"job": jobs.start(owner(args), title(args), [cmd] + args)})
+            return
+        if cmd not in SYNC:
+            fail(f"Comando desconocido: {cmd}")
+        res = SYNC[cmd](*args)
+        out(res if res is not None else {})
+    except HPError as e:
+        fail(e)
+    except TypeError as e:
+        fail(f"Argumentos incorrectos para {cmd}: {e}")
+    except Exception as e:
+        fail(f"{type(e).__name__}: {e}")
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
