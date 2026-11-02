@@ -6,8 +6,9 @@
 
 	<template x-if="loaded">
 	<div>
+		<?php include __DIR__ . "/node_panel.php"; ?>
 		<!-- Estado de la app existente -->
-		<template x-if="app && app.type">
+		<template x-if="app && app.type && (form.type !== 'node' || toolTab === 'panel')">
 			<div class="hp-card hp-mb">
 				<div class="hp-card-body hp-between hp-wrap">
 					<div class="hp-flex" style="gap:14px">
@@ -35,19 +36,14 @@
 						<button type="button" class="hp-btn hp-btn-sm" x-show="app.type === 'node' || app.type === 'python'" x-on:click="deps()"><i class="fas fa-download"></i><span x-text="app.type === 'node' ? HP.t('NPM install') : HP.t('pip install')"></span></button>
 					</div>
 				</div>
-				<template x-if="app.type === 'node' && Object.keys(scripts).length">
-					<div class="hp-card-body" style="border-top:1px solid var(--hp-border)">
-						<span class="hp-muted hp-small" style="margin-right:8px"><?= __e('Ejecutar script de package.json:') ?></span>
-						<template x-for="(cmd, name) in scripts" :key="name">
-							<button type="button" class="hp-btn hp-btn-xs" style="margin:2px" :title="cmd" x-on:click="runScript(name)"><i class="fas fa-play"></i><span x-text="name"></span></button>
-						</template>
-					</div>
-				</template>
+
 			</div>
 		</template>
 
 		<!-- Importar desde un archivo -->
-		<div class="hp-card hp-mb">
+        <details class="hp-card hp-mb hp-node-import" x-show="form.type !== 'node' || toolTab === 'panel'">
+            <summary><i class="fas fa-file-zipper"></i> <?= __e('Subir otro proyecto (.zip / .tar.gz)') ?></summary>
+        <div>
 			<div class="hp-card-head">
 				<h2 class="hp-card-title"><i class="fas fa-file-zipper"></i><?= __e('Importar desde un archivo (.zip / .tar.gz)') ?></h2>
 			</div>
@@ -102,7 +98,8 @@
 			</div>
 		</div>
 
-		<div class="hp-card">
+        </details>
+		<div class="hp-card" x-show="form.type !== 'node' || (toolTab === 'panel' && showSettings)">
 			<div class="hp-card-head">
 				<h2 class="hp-card-title"><i class="fas fa-sliders"></i><span x-text="app && app.type ? HP.t('Configuración de la aplicación') : HP.t('Configurar una aplicación para este dominio')"></span></h2>
 			</div>
@@ -262,34 +259,41 @@
 					</div>
 				</template>
 
-				<!-- Variables de entorno -->
-				<div class="hp-field" x-show="form.type !== 'proxy'">
-					<label><?= __e('Variables de entorno') ?></label>
-					<template x-for="(r, i) in env" :key="i">
-						<div class="hp-flex" style="margin-bottom:6px">
-							<input class="hp-input hp-mono" style="max-width:260px" x-model="r.k" placeholder="NOMBRE">
-							<input class="hp-input hp-mono" x-model="r.v" placeholder="valor">
-							<button type="button" class="hp-btn hp-btn-ghost hp-btn-sm" x-on:click="env.splice(i, 1)"><i class="fas fa-xmark"></i></button>
-						</div>
-					</template>
-					<button type="button" class="hp-btn hp-btn-sm" x-on:click="env.push({k: '', v: ''})"><i class="fas fa-plus"></i><?= __e('Agregar variable') ?></button>
-					<p class="hp-hint"><code>PORT</code> y <code>HOST</code> <?= __e('se definen solos. Los valores se guardan solo accesibles por root.') ?></p>
-				</div>
 
 				<div class="hp-field" style="max-width:260px" x-show="form.type !== 'proxy'">
 					<label><?= __e('Límite de memoria (MB)') ?></label>
 					<input class="hp-input" type="number" min="0" x-model.number="form.memory_mb" placeholder="<?= __e('0 = sin límite') ?>">
 				</div>
 
-				<div class="hp-between hp-wrap" style="border-top:1px solid var(--hp-border);padding-top:16px">
-					<button type="button" class="hp-btn hp-btn-danger" x-show="app && app.type" x-on:click="remove()"><i class="fas fa-trash"></i><?= __e('Quitar aplicación') ?></button>
-					<span x-show="!(app && app.type)"></span>
-					<button type="button" class="hp-btn hp-btn-primary" :class="busy && 'is-loading'" x-on:click="save()">
-						<i class="fas" :class="busy ? HP.t('fa-circle-notch fa-spin') : 'fa-check'"></i><span x-text="app && app.type ? HP.t('Guardar y reiniciar') : HP.t('Crear aplicación')"></span>
-					</button>
-				</div>
+
 			</div>
 		</div>
+        <div class="hp-card hp-mb" x-show="form.type !== 'node' || toolTab === 'environment'">
+            <div class="hp-card-head"><h3 class="hp-card-title"><?= __e('Variables de entorno') ?></h3></div>
+            <div class="hp-card-body hp-form">				<!-- Variables de entorno -->
+				<div class="hp-field" x-show="form.type !== 'proxy'">
+					<p class="hp-hint"><?= __e('Estas variables se añaden al servicio. El archivo .env del proyecto se conserva y no se copia a este formulario.') ?></p>
+					<template x-for="(r, i) in env" :key="i">
+						<div class="hp-flex" style="margin-bottom:6px">
+							<input class="hp-input hp-mono" style="max-width:260px" x-model="r.k" placeholder="NOMBRE">
+							<input class="hp-input hp-mono" type="password" autocomplete="off" x-model="r.v" placeholder="valor">
+							<button type="button" class="hp-btn hp-btn-ghost hp-btn-sm" x-on:click="env.splice(i, 1)"><i class="fas fa-xmark"></i></button>
+						</div>
+					</template>
+					<button type="button" class="hp-btn hp-btn-sm" x-on:click="env.push({k: '', v: ''})"><i class="fas fa-plus"></i><?= __e('Agregar variable') ?></button>
+					<p class="hp-hint"><code>PORT</code> y <code>HOST</code> <?= __e('se definen solos. Los valores se guardan solo accesibles por root.') ?></p>
+				</div>
+</div>
+        </div>
+
+        <div x-show="form.type !== 'node' || toolTab !== 'commands'">				<div class="hp-between hp-wrap" style="border-top:1px solid var(--hp-border);padding-top:16px">
+					<button type="button" class="hp-btn hp-btn-danger" x-show="app && app.type" x-on:click="remove()"><i class="fas fa-trash"></i><?= __e('Quitar aplicación') ?></button>
+					<span x-show="!(app && app.type)"></span>
+					<button type="button" class="hp-btn hp-btn-primary" :class="busy && 'is-loading'" :disabled="busy || inspecting || (form.type === 'node' && (inspection?.blocking || !inspection?.found))" x-on:click="form.type === 'node' ? activateNode() : save()">
+						<i class="fas" :class="busy ? HP.t('fa-circle-notch fa-spin') : 'fa-check'"></i><span x-text="app && app.type ? HP.t('Guardar y reiniciar') : (form.type === 'node' ? HP.t('Activar Node.js') : HP.t('Crear aplicación'))"></span>
+					</button>
+				</div></div>
+
 	</div>
 	</template>
 </div>

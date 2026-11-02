@@ -292,6 +292,8 @@ switch ($a) {
 		hp_ok(hp_call(["app-list", $admin ? "all" : $me]));
 	case "app-get":
 		hp_ok(hp_call(["app-get", $user, $domain]));
+	case "app-inspect":
+		hp_ok(hp_call(["app-inspect", $user, $domain, (string) ($in["root"] ?? "")]));
 	case "app-save":
 		$app = (array) ($in["app"] ?? []);
 		if (!$admin && ($app["type"] ?? "") === "docker") {

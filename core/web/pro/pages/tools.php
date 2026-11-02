@@ -19,7 +19,7 @@ $groups = [
 		["/pro/advisor/", "fa-stethoscope", __('Asesor'), __('Recomendaciones de seguridad')],
 	],
 	__('Herramientas') => [
-		["/fm/", "fa-folder-open", __('Administrador de archivos'), __('Explorar y editar archivos')],
+		["/pro/transfers/", "fa-folder-open", __('Administrador de archivos'), __('Explorar y editar archivos')],
 		["/phpmyadmin/", "fa-table", "phpMyAdmin", __('Administrar MySQL/MariaDB')],
 		["/webmail/", "fa-envelope-open-text", __('Webmail'), "Roundcube"],
 		["/list/rrd/", "fa-chart-column", __('Gráficos de servicios'), __('nginx, MySQL, correo, SSH')],

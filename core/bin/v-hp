@@ -19,6 +19,7 @@ os.umask(0o022)
 from hp import (advisor, apache, appimport, apps, db, docker, geo, git, jobs, metrics, pma, runtimes, sampler,  # noqa: E402
                 sites, traffic, updater, uptime, weblog, webinstall)
 from hp import i18n  # noqa: E402
+from hp import appinspect
 from hp.common import (DATA, HPError, b64json, check_domain_fmt, check_user, check_web_domain, ensure_dir, fail,  # noqa: E402
                        hestia, list_users, load_json, out, save_json, settings)
 
@@ -124,6 +125,7 @@ SYNC = {
     "job-status": lambda jid, owner="": jobs.status(jid, owner or None),
     "app-list": lambda user="all": apps.list_all(_users(user)),
     "app-get": lambda user, domain: apps.get(user, domain),
+    "app-inspect": lambda user, domain, root="": appinspect.inspect(user, domain, root),
     "app-save": _app_save,
     "app-action": lambda user, domain, what: apps.action(user, domain, what),
     "app-delete": lambda user, domain: apps.delete(user, domain),

@@ -107,7 +107,7 @@ hp_page_header($d, ($hasWeb ? e(hp_hosting_meta($t)[0]) . " · " : "") . __('Sus
 					<div class="hp-card-body">
 						<div class="hp-tools" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))">
 							<?php if ($hasWeb) { ?>
-								<a class="hp-tool hp-tool-big" href="<?= $native("/fm/?path=" . urlencode("/web/" . $d)) ?>"><i class="fas fa-folder-open"></i><?= __e('Archivos') ?></a>
+								<a class="hp-tool hp-tool-big" href="<?= $native("/pro/transfers/?open=" . urlencode("/web/" . $d)) ?>"><i class="fas fa-folder-open"></i><?= __e('Archivos') ?></a>
 								<button type="button" class="hp-tool hp-tool-big" x-on:click="go('hosting')"><i class="fas fa-sliders"></i><?= __e('Hosting y PHP') ?></button>
 								<button type="button" class="hp-tool hp-tool-big" x-on:click="go('app')"><i class="fas fa-cubes"></i><?= __e('Node.js · Python · Docker') ?></button>
 								<button type="button" class="hp-tool hp-tool-big" x-on:click="go('ssl')"><i class="fas fa-lock"></i>SSL/TLS</button>
