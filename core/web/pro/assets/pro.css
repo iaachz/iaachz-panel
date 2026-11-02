@@ -1840,3 +1840,16 @@ html.hp-dark { --hp-map-land: #2a3446; --hp-map-sea: #121924; --hp-map-line: #17
 	font-size: 2rem;
 	color: var(--hp-primary);
 }
+
+/* Node.js toolkit: overview, environment and commands. */
+.hp-node-heading,.hp-node-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.hp-node-heading h2{margin:0;font-size:1.4rem}.hp-node-heading p{margin:4px 0 0}
+.hp-node-toolbar{justify-content:flex-start;margin-top:16px}
+.hp-node-summary{display:grid;grid-template-columns:minmax(170px,220px) minmax(0,1fr);gap:0;margin:0;padding:8px 24px 20px}
+.hp-node-summary dt,.hp-node-summary dd{padding:13px 0;border-bottom:1px solid var(--hp-border);margin:0;overflow-wrap:anywhere}
+.hp-node-summary dt{color:var(--hp-muted)}.hp-node-summary dd{color:var(--hp-text)}
+.hp-node-note{display:block;margin-top:5px;font-size:.83rem;white-space:normal;overflow-wrap:anywhere}
+.hp-node-checks{display:grid;gap:12px}.hp-node-check{display:grid;grid-template-columns:90px 1fr;gap:12px;align-items:start}.hp-node-check .hp-badge{justify-content:center}
+.hp-node-script{display:flex;align-items:center;justify-content:space-between;gap:16px;border-top:1px solid var(--hp-border);padding-top:14px}.hp-node-script>div{min-width:0}
+.hp-node-import>summary{cursor:pointer;list-style-position:inside;padding:18px 24px;font-weight:600}.hp-node-import>summary i{margin-right:8px}
+@media(max-width:640px){.hp-node-summary{grid-template-columns:1fr;padding:8px 16px 16px}.hp-node-summary dt{border:0;padding:12px 0 0}.hp-node-summary dd{padding:5px 0 12px}.hp-node-toolbar .hp-btn{flex:1 1 auto}.hp-node-check{grid-template-columns:1fr;gap:5px}.hp-node-check .hp-badge{justify-self:start}}

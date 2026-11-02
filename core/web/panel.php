@@ -32,9 +32,7 @@ $hp_items[] = ["apps", "/pro/apps/", "fa-cubes", __("Aplicaciones")];
 // sus entradas de menú ya están más abajo, así que no añade nada: $hp_items[] = ["apps", "/pro/apps/", "fa-cubes", "Aplicaciones"];
 $hp_items[] = ["uptime", "/pro/uptime/", "fa-heart-pulse", __("Disponibilidad")];
 // Integraciones opcionales (NexoPanel): solo aparecen si el servidor las tiene instaladas
-if (empty($_SESSION["look"]) && is_file("/etc/nexopanel/transfers.json")) {
-	$hp_items[] = ["transfers", "/pro/transfers/", "fa-file-arrow-up", __("Archivos y transferencias")];
-}
+
 if ($hp_is_admin && is_file($_SERVER["HESTIA"] . "/bin/v-local-apps")) {
 	$hp_items[] = ["local-apps", "/pro/local-apps/", "fa-plug", __("Webs sin dominio")];
 }
@@ -51,7 +49,9 @@ if ($hp_sys("DNS_SYSTEM") && ($hp_is_admin || $hp_has("DNS_DOMAINS"))) {
 	$hp_items[] = ["dns", "/list/dns/", "fa-sitemap", __("DNS")];
 }
 if (($_SESSION["FILE_MANAGER"] ?? "") == "true" && !($_SESSION["userContext"] === "admin" && $_SESSION["look"] === $_SESSION["ROOT_USER"] && $_SESSION["POLICY_SYSTEM_PROTECTED_ADMIN"] == "yes")) {
-	$hp_items[] = ["files", "/fm/", "fa-folder-open", __("Archivos")];
+	$hp_items[] = is_file('/etc/nexopanel/transfers.json')
+        ? ["transfers", "/pro/transfers/", "fa-folder-open", __("Archivos y transferencias")]
+        : ["files", "/fm/", "fa-folder-open", __("Archivos")];
 }
 if ($hp_sys("CRON_SYSTEM") && ($hp_is_admin || $hp_has("CRON_JOBS"))) {
 	$hp_items[] = ["cron", "/list/cron/", "fa-clock", __("Tareas programadas")];

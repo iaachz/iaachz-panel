@@ -54,13 +54,13 @@ def py_template(node):
 
 def py_keys():
     keys = {}
-    names = {"HPError": (0,), "fail": (0,), "step": (0, 2), "add": (1, 2), "alert": (1, 2), "tr": (0,)}
+    names = {"HPError": (0,), "fail": (0,), "step": (0, 2), "add": (1, 2), "alert": (1, 2), "tr": (0,), "check": (1,)}
     for f in sorted((ROOT / "lib" / "hp").glob("*.py")) + [ROOT / "bin" / "v-hp"]:
         tree = ast.parse(f.read_text(encoding="utf-8"))
         for n in ast.walk(tree):
             if isinstance(n, ast.Call):
                 fn = n.func.id if isinstance(n.func, ast.Name) else n.func.attr if isinstance(n.func, ast.Attribute) else None
-                if fn in names and (fn != "add" or f.name == "advisor.py") and (fn != "alert" or f.name == "advisor.py"):
+                if fn in names and (fn != "add" or f.name == "advisor.py") and (fn != "alert" or f.name == "advisor.py") and (fn != "check" or f.name == "appinspect.py"):
                     for i in names[fn]:
                         if i < len(n.args):
                             t = py_template(n.args[i])

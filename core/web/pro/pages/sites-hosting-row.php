@@ -56,7 +56,7 @@
 							<a class="hp-tool" href="/pro/site/?<?= e($q) ?>#ssl"><i class="fas fa-lock"></i>SSL/TLS</a>
 							<a class="hp-tool" href="/pro/site/?<?= e($q) ?>#git"><i class="fas fa-code-branch"></i>Git</a>
 							<?php if ($own) { ?>
-								<a class="hp-tool" href="/fm/?path=<?= e(urlencode("/web/" . $s["domain"])) ?>"><i class="fas fa-folder-open"></i><?= __e('Archivos') ?></a>
+								<a class="hp-tool" href="/pro/transfers/?open=<?= e(urlencode("/web/" . $s["domain"])) ?>"><i class="fas fa-folder-open"></i><?= __e('Archivos') ?></a>
 								<a class="hp-tool" href="/list/web-log/?<?= e(http_build_query(["domain" => $s["domain"], "type" => "access"])) ?>"><i class="fas fa-file-lines"></i><?= __e('Registros') ?></a>
 								<a class="hp-tool" href="/edit/web/?<?= e(http_build_query(["domain" => $s["domain"], "token" => $_SESSION["token"]])) ?>"><i class="fas fa-pen"></i><?= __e('Ajustes avanzados') ?></a>
 							<?php } ?>

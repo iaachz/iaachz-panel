@@ -1231,6 +1231,12 @@
 			domain: cfg.domain,
 			isAdmin: cfg.isAdmin,
 			app: null,
+			toolTab: 'panel',
+			inspection: null,
+			inspectError: '',
+			inspecting: false,
+			inspectionRoot: '',
+			showSettings: false,
 			form: Object.assign({ type: 'node', version: '', root: 'app', start_mode: 'file', startup: 'app.js', mode: 'production', server: 'gunicorn', module: 'app:app', workers: 2, command: '', image: '', build: false, container_port: 80, target: 'http://127.0.0.1:8080', memory_mb: 0, enabled: true }, cfg.preset || {}),
 			env: [],
 			volumes: [],
@@ -1247,6 +1253,7 @@
 				}
 				await this.reload();
 				this.loaded = true;
+				await this.inspectProject(!this.app?.type && !cfg.preset ? 'silent' : false);
 			},
 			async reload() {
 				if (!this.domain) return;
@@ -1267,6 +1274,51 @@
 					if (!this.form.version) this.form.version = this.form.type === 'python' ? 'system' : nodes[nodes.length - 1] || '';
 				}
 			},
+			async inspectProject(apply = false, root = null) {
+                if (this.inspecting) return;
+                this.inspecting = true;
+                this.inspectError = '';
+                try {
+                    const selected = root === null ? (this.app?.root || this.inspectionRoot || '') : root;
+                    this.inspection = await HP.api('app-inspect', { user: this.user, domain: this.domain, root: selected });
+                    this.inspectionRoot = this.inspection.root || '';
+                    if (apply && this.inspection.found) {
+                        // Detection edits the draft only; preserve the runtime and variables of an existing app.
+                        const version = this.app?.type === 'node' ? this.form.version : this.inspection.config.version;
+                        Object.assign(this.form, this.inspection.config, { version });
+                        this.scripts = this.inspection.scripts || {};
+                        if (apply !== 'silent') HP.toast(HP.t('Configuración detectada. Revisa el resultado y pulsa Activar Node.js.'));
+                    }
+                } catch (e) {
+                    this.inspection = null;
+                    this.inspectError = e.message;
+                } finally {
+                    this.inspecting = false;
+                }
+            },
+            async activateNode() {
+                if (this.busy || this.inspecting) return;
+                await this.inspectProject(false, this.form.root);
+                if (this.inspectError) return;
+                if (this.inspection?.blocking) {
+                    HP.toast(HP.t('Resuelve los puntos marcados antes de activar la aplicación.'), 'error');
+                    return;
+                }
+                if (!this.inspection?.found) {
+                    this.showSettings = true;
+                    HP.toast(HP.t('No se encontró package.json en esta carpeta. Revisa la raíz de la aplicación.'), 'error');
+                    return;
+                }
+                await this.save();
+            },
+            async nodeAction(what) {
+                if (this.busy) return;
+                this.busy = true;
+                try { await this.act(what); } finally { this.busy = false; }
+            },
+            checkLabel(state) {
+                return { ok: HP.t('Correcto'), error: HP.t('Revisar'), warning: HP.t('Atención'), pending: HP.t('Al activar') }[state] || state;
+            },
 			setType(t) {
 				this.form.type = t;
 				if (t === 'node') {
@@ -1343,12 +1395,14 @@
 				try {
 					const r = await HP.api('app-save', { user: this.user, domain: this.domain, app: this.payload() });
 					if (r.job) {
-						await HP.job(r.job, HP.t('Aplicando la aplicación de %s', this.domain), { autoClose: true }).catch(() => {});
+						await HP.job(r.job, HP.t('Aplicando la aplicación de %s', this.domain), { autoClose: true });
 					}
 					HP.toast(r.sample_created ? HP.t('Aplicación creada con un ejemplo funcionando') : HP.t('Aplicación guardada'));
 					await this.reload();
+					await this.inspectProject(false, this.form.root);
 				} catch (e) {
 					HP.toast(e.message, 'error');
+					await this.reload();
 				}
 				this.busy = false;
 			},

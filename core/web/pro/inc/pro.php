@@ -17,6 +17,16 @@ function hp_me(): string {
 	return !empty($_SESSION["look"]) ? $_SESSION["look"] : $_SESSION["user"];
 }
 
+// File manager policy matches Hestia's native visibility, including protected admin accounts.
+function hp_files_allowed(): bool {
+    if (($_SESSION['FILE_MANAGER'] ?? '') !== 'true') return false;
+    if (!empty($_SESSION['look'])) {
+        if (($_SESSION['userContext'] ?? '') !== 'admin') return false;
+        if ($_SESSION['look'] === ($_SESSION['ROOT_USER'] ?? '') && ($_SESSION['POLICY_SYSTEM_PROTECTED_ADMIN'] ?? '') === 'yes') return false;
+    }
+    return true;
+}
+
 // Usuario objetivo de una acción: el admin puede indicar ?user=, el resto solo actúa sobre sí mismo.
 function hp_target_user(?string $requested = null): string {
 	$requested = $requested ?? ($_REQUEST["user"] ?? "");

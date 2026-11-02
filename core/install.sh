@@ -67,6 +67,12 @@ if ! grep -q "iaachz-panel" $WEB/templates/includes/panel.php; then
 fi
 install -o root -g root -m 644 $S/web/panel.php $WEB/templates/includes/panel.php
 
+# Restore the integrated file manager route after Hestia updates (with original config backup).
+if [ -f /etc/nexopanel/transfers.json ]; then
+    [ -f "$PRO/backup/$VERSION/nginx_filemanager.conf" ] || cp -a "$HESTIA/nginx/conf/nginx.conf" "$PRO/backup/$VERSION/nginx_filemanager.conf"
+    /usr/bin/python3 "$S/lib/hp/filemanager_route.py"
+fi
+
 # Inicio -> /pro/ (panel de inicio estilo Plesk) en vez de la lista de usuarios
 patch_home() {
 	local f=$1

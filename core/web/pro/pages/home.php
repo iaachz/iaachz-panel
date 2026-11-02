@@ -165,7 +165,7 @@ hp_page_header($greet . ", " . hp_me(), hp_admin() ? __('Resumen del servidor y 
 						<a class="hp-tool" href="/add/mail/"><i class="fas fa-envelope"></i><?= __e('Correo') ?></a>
 						<a class="hp-tool" href="/list/dns/"><i class="fas fa-sitemap"></i>DNS</a>
 						<a class="hp-tool" href="/list/backup/"><i class="fas fa-life-ring"></i><?= __e('Copias') ?></a>
-						<a class="hp-tool" href="/fm/"><i class="fas fa-folder-open"></i><?= __e('Archivos') ?></a>
+						<a class="hp-tool" href="/pro/transfers/"><i class="fas fa-folder-open"></i><?= __e('Archivos') ?></a>
 						<a class="hp-tool" href="/list/firewall/"><i class="fas fa-shield"></i><?= __e('Cortafuegos') ?></a>
 					</div>
 				</div>
