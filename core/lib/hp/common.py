@@ -255,6 +255,8 @@ def settings():
         "target_labels": "",           # nombres para IPs VPN: 100.64.0.1=servidor-casa,...
         "pma_same_origin": False,      # True: phpMyAdmin se abre en el mismo origen que el panel
         "language": "es",              # idioma de la interfaz: es, en, pt, fr, de, it o "auto" (el del perfil de cada usuario)
+        "update_channel": "releases",  # actualizaciones desde GitHub: "releases" (versiones publicadas) o "main"
+        "update_auto": False,          # instalar sola la versión nueva cada noche
     }
     base.update(load_json(f"{DATA}/settings.json", {}))
     return base

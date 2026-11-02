@@ -14,6 +14,8 @@ El código de iaachz-panel es el mismo en todos los servidores. Lo que cambia de
 | `tunnel_default_port` | texto | `8080` | Puerto que aparece ya escrito al crear un túnel. |
 | `target_labels` | lista `ip=nombre` | *(vacío)* | Nombre amistoso para IPs VPN: `100.64.0.5=servidor-casa,100.64.0.9=nas`. |
 | `language` | texto | `es` | Idioma de la interfaz: `es`, `en`… o `auto` (el del perfil de cada usuario). Ver [IDIOMAS.md](IDIOMAS.md). |
+| `update_channel` | texto | `releases` | Qué instala *Actualizaciones del panel*: `releases` (solo versiones publicadas, etiquetas `vX.Y.Z`) o `main` (cada cambio fusionado en la rama principal). |
+| `update_auto` | sí/no | `false` | `true`: cada noche (3:41) instala sola la versión nueva y, si falla, vuelve a la anterior. `false`: solo avisa en la campana. |
 | `pma_same_origin` | sí/no | `false` | `true` en servidores **privados**: phpMyAdmin se abre en el mismo origen y puerto que el panel, en vez de en el dominio web por el puerto 443. |
 
 Además, las claves de alertas que ya edita *Herramientas y ajustes* en el panel (`alert_cpu`, `alert_mem`,

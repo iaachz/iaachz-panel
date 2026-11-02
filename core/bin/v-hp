@@ -17,7 +17,7 @@ sys.path.insert(0, "/opt/iaachz-panel/lib")
 os.umask(0o022)
 
 from hp import (advisor, apache, appimport, apps, db, docker, geo, git, jobs, metrics, pma, runtimes, sampler,  # noqa: E402
-                sites, traffic, uptime, weblog, webinstall)
+                sites, traffic, updater, uptime, weblog, webinstall)
 from hp import i18n  # noqa: E402
 from hp.common import (DATA, HPError, b64json, check_domain_fmt, check_user, check_web_domain, ensure_dir, fail,  # noqa: E402
                        hestia, list_users, load_json, out, save_json, settings)
@@ -61,6 +61,8 @@ def _settings_set(b64):
         if k not in cur:
             continue
         if k == "language" and not (v == "auto" or re.fullmatch(r"[a-z]{2,3}", str(v))):
+            continue
+        if k == "update_channel" and v not in ("releases", "main"):
             continue
         if isinstance(cur[k], bool):
             cur[k] = bool(v)
@@ -129,6 +131,9 @@ SYNC = {
     "app-logs": lambda user, domain, n="200": apps.logs(user, domain, n),
     "app-scripts": lambda user, domain: apps.scripts(user, domain),
     "webapp-install": lambda app, user, domain, b64: webinstall.start(app, user, domain, b64),
+    "update-status": lambda: updater.status(),
+    "update-check": lambda: updater.check(),
+    "update-cron": lambda: updater.cron(),
     "docker-status": lambda: runtimes.docker_status(),
     "docker-ps": lambda: docker.containers(),
     "docker-images": lambda: docker.images(),
@@ -182,6 +187,7 @@ JOBS = {
     "app-apply": (lambda u, d: apps.apply_runtime(u, d), lambda a: a[0], lambda a: f"Aplicar aplicación de {a[1]}"),
     "app-deps": (lambda u, d: apps.install_deps(u, d), lambda a: a[0], lambda a: f"Instalar dependencias de {a[1]}"),
     "app-run-script": (lambda u, d, s: apps.run_script(u, d, s), lambda a: a[0], lambda a: f"npm run {a[2]} en {a[1]}"),
+    "update-apply": (lambda: updater.apply(), lambda a: "admin", lambda a: "Actualizar iaachz-panel"),
     "app-import": (lambda u, d, b64: appimport.import_archive(u, d, b64json(b64)), lambda a: a[0],
                    lambda a: f"Importar aplicación en {a[1]}"),
     "webapp-run": (lambda app, u, d, sid: webinstall.run(app, u, d, sid), lambda a: a[1],
@@ -215,6 +221,8 @@ def _precheck(cmd, args):
         raise HPError("Este dominio no tiene repositorio configurado")
     if cmd == "app-import":
         appimport.check_source(b64json(args[2]))
+    if cmd == "update-apply" and not updater.which("git"):
+        raise HPError("Falta git en el servidor: instálalo con apt install git")
     if cmd == "db-import":
         db._check_db(args[0], args[1])
         db.check_source(args[0], args[2])

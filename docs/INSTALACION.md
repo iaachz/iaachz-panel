@@ -107,12 +107,39 @@ dominio, y lo deja escuchando únicamente en `127.0.0.1:7080`.
 
 ## 6. Actualizar
 
+Desde el panel: **Herramientas y ajustes → Actualizaciones del panel**. El servidor guarda un clon de este
+repositorio en `/opt/iaachz-panel/repo`, lo compara con lo instalado (`/opt/iaachz-panel/version.json`) y
+muestra la versión nueva y sus cambios. **Actualizar** ejecuta `install.sh --only <módulo>` para los módulos que
+ya estén instalados, como tarea con registro; si falla, vuelve a instalar la versión anterior.
+
+- **Qué instalar:** *versiones publicadas* (por defecto) solo cambia el servidor cuando se publica una versión
+  (etiqueta `vX.Y.Z`, ver más abajo); *rama main* instala cada cambio fusionado.
+- **Actualizar automáticamente:** cada noche a las 3:41 (`v-hp update-cron` en `/etc/cron.d/iaachz-panel`).
+  Sin activarlo, la consulta diaria solo avisa en la campana, una vez por versión.
+- Es el servidor el que pregunta a GitHub (el repositorio es público), así que funciona detrás de NAT o solo
+  con Tailscale. Necesita `git` (`apt install git`).
+
+A mano, desde un clon:
+
 ```bash
 cd iaachz-panel && git pull
 sudo ./install.sh
 ```
 
-Es idempotente. Tras una actualización de Hestia (`apt upgrade`), los ganchos reaplican los parches solos; si
+### Publicar una versión
+
+Los servidores con *versiones publicadas* solo se actualizan cuando hay una etiqueta nueva `vX.Y.Z` en `main`
+(semver: `v1.2.0`, `v1.2.1`…). Desde GitHub: *Releases → Draft a new release*, etiqueta nueva sobre `main`,
+título y notas. O por consola:
+
+```bash
+git switch main && git pull
+git tag -a v1.2.0 -m "iaachz-panel 1.2.0" && git push origin v1.2.0
+```
+
+Prueba antes la versión en un servidor (canal *main* o `sudo ./install.sh` desde el clon) y publica después.
+
+El instalador es idempotente. Tras una actualización de Hestia (`apt upgrade`), los ganchos reaplican los parches solos; si
 alguno no encaja con la nueva versión, el instalador lo indica y lo omite sin romper el panel.
 
 ## 7. Solución de problemas
