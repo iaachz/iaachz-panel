@@ -16,7 +16,8 @@ import traceback
 sys.path.insert(0, "/opt/iaachz-panel/lib")
 os.umask(0o022)
 
-from hp import advisor, apache, apps, db, docker, geo, git, jobs, metrics, pma, runtimes, sampler, sites, traffic, uptime, weblog  # noqa: E402
+from hp import (advisor, apache, appimport, apps, db, docker, geo, git, jobs, metrics, pma, runtimes, sampler,  # noqa: E402
+                sites, traffic, uptime, weblog, webinstall)
 from hp import i18n  # noqa: E402
 from hp.common import (DATA, HPError, b64json, check_domain_fmt, check_user, check_web_domain, ensure_dir, fail,  # noqa: E402
                        hestia, list_users, load_json, out, save_json, settings)
@@ -127,6 +128,7 @@ SYNC = {
     "app-cleanup": lambda user, domain: apps.cleanup_domain(check_user(user), domain) or {"ok": True},
     "app-logs": lambda user, domain, n="200": apps.logs(user, domain, n),
     "app-scripts": lambda user, domain: apps.scripts(user, domain),
+    "webapp-install": lambda app, user, domain, b64: webinstall.start(app, user, domain, b64),
     "docker-status": lambda: runtimes.docker_status(),
     "docker-ps": lambda: docker.containers(),
     "docker-images": lambda: docker.images(),
@@ -180,6 +182,10 @@ JOBS = {
     "app-apply": (lambda u, d: apps.apply_runtime(u, d), lambda a: a[0], lambda a: f"Aplicar aplicación de {a[1]}"),
     "app-deps": (lambda u, d: apps.install_deps(u, d), lambda a: a[0], lambda a: f"Instalar dependencias de {a[1]}"),
     "app-run-script": (lambda u, d, s: apps.run_script(u, d, s), lambda a: a[0], lambda a: f"npm run {a[2]} en {a[1]}"),
+    "app-import": (lambda u, d, b64: appimport.import_archive(u, d, b64json(b64)), lambda a: a[0],
+                   lambda a: f"Importar aplicación en {a[1]}"),
+    "webapp-run": (lambda app, u, d, sid: webinstall.run(app, u, d, sid), lambda a: a[1],
+                   lambda a: f"Instalar {webinstall.APPS.get(a[0], [a[0]])[0]} en {a[2]}"),
     "docker-pull": (lambda img: docker.pull(img), lambda a: "admin", lambda a: f"Descargar imagen {a[0]}"),
     "docker-run": (lambda b64: docker.run_container(b64json(b64)), lambda a: "admin", lambda a: "Crear contenedor"),
     "compose-action": (lambda n, w: docker.stack_action(n, w), lambda a: "admin", lambda a: f"Compose {a[1]}: {a[0]}"),
@@ -200,10 +206,15 @@ JOBS = {
 
 def _precheck(cmd, args):
     """Valida antes de lanzar una tarea, para que el error llegue al instante y no en el log."""
-    if cmd in ("app-apply", "app-deps", "app-run-script", "git-deploy", "ssl-issue", "wp-update", "apache-enable"):
+    if cmd in ("app-apply", "app-deps", "app-run-script", "git-deploy", "ssl-issue", "wp-update", "apache-enable",
+               "app-import"):
         check_web_domain(args[0], args[1])
+    if cmd == "webapp-run":
+        check_web_domain(args[1], args[2])
     if cmd == "git-deploy" and not git.load(args[0]).get(args[1]):
         raise HPError("Este dominio no tiene repositorio configurado")
+    if cmd == "app-import":
+        appimport.check_source(b64json(args[2]))
     if cmd == "db-import":
         db._check_db(args[0], args[1])
         db.check_source(args[0], args[2])
