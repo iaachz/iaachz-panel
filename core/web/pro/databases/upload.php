@@ -1,7 +1,8 @@
 <?php
-// iaachz-panel: subida de volcados por partes (8 MB cada una), así no aplica el límite de subida de PHP.
-// Las partes se guardan en /var/lib/iaachz-panel/uploads (solo hestiaweb); `v-hp db-import` mueve el archivo
-// a una zona solo-root antes de leerlo.
+// iaachz-panel: subida por partes (8 MB cada una), así no aplica el límite de subida de PHP.
+// Sirve para volcados de bases de datos y, con la cabecera X-Upload-Kind: app, para archivos de aplicación
+// (.zip, .tar.gz…). Las partes se guardan en /var/lib/iaachz-panel/uploads (solo hestiaweb); `v-hp db-import`
+// y `v-hp app-import` mueven el archivo fuera de ahí antes de leerlo.
 include __DIR__ . "/../inc/pro.php";
 
 header("Content-Type: application/json; charset=utf-8");
@@ -22,6 +23,7 @@ if (!hash_equals($_SESSION["token"] ?? "", (string) ($_SERVER["HTTP_X_TOKEN"] ??
 $id = (string) ($_SERVER["HTTP_X_UPLOAD_ID"] ?? "");
 $index = (int) ($_SERVER["HTTP_X_CHUNK_INDEX"] ?? -1);
 $total = (int) ($_SERVER["HTTP_X_FILE_SIZE"] ?? 0);
+$kind = ($_SERVER["HTTP_X_UPLOAD_KIND"] ?? "") === "app" ? "app" : "dump";
 $name = basename(rawurldecode((string) ($_SERVER["HTTP_X_FILE_NAME"] ?? "volcado.sql")));
 if (!preg_match('/^[a-f0-9]{32}$/', $id) || $index < 0) {
 	hp_up_fail(__('Parámetros de subida no válidos'));
@@ -29,7 +31,10 @@ if (!preg_match('/^[a-f0-9]{32}$/', $id) || $index < 0) {
 if ($total <= 0 || $total > HP_MAX_UPLOAD) {
 	hp_up_fail(__('El archivo supera el máximo de 8 GB; súbelo por FTP/SFTP e impórtalo desde el servidor'));
 }
-if (!preg_match('/\.(sql|gz|zip|bz2|xz|zst)$/i', $name)) {
+if ($kind === "app" && !preg_match('/\.(zip|tar|tgz|tbz2?|txz|tar\.(gz|bz2|xz))$/i', $name)) {
+	hp_up_fail(__('Formato no admitido: usa .zip, .tar.gz, .tgz, .tar.bz2 o .tar.xz'));
+}
+if ($kind === "dump" && !preg_match('/\.(sql|gz|zip|bz2|xz|zst)$/i', $name)) {
 	hp_up_fail(__('Formato no admitido: usa .sql, .sql.gz, .zip, .bz2, .xz o .zst'));
 }
 
@@ -39,9 +44,9 @@ $owner = $_SESSION["user"];
 
 if ($index === 0) {
 	if (@disk_free_space(HP_UPLOADS) < $total * 2) {
-		hp_up_fail(__('No hay espacio libre suficiente en el servidor para este volcado'));
+		hp_up_fail(__('No hay espacio libre suficiente en el servidor para este archivo'));
 	}
-	$meta = ["owner" => $owner, "name" => $name, "size" => $total, "next" => 0, "received" => 0];
+	$meta = ["owner" => $owner, "kind" => $kind, "name" => $name, "size" => $total, "next" => 0, "received" => 0];
 	file_put_contents($part, "");
 } else {
 	$meta = json_decode((string) @file_get_contents($metaFile), true);

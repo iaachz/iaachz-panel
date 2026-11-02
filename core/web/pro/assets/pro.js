@@ -1231,9 +1231,10 @@
 			domain: cfg.domain,
 			isAdmin: cfg.isAdmin,
 			app: null,
-			form: Object.assign({ type: 'node', version: '', root: 'app', start_mode: 'file', startup: 'app.js', mode: 'production', server: 'gunicorn', module: 'app:app', workers: 2, command: '', image: '', container_port: 80, target: 'http://127.0.0.1:8080', memory_mb: 0, enabled: true }, cfg.preset || {}),
+			form: Object.assign({ type: 'node', version: '', root: 'app', start_mode: 'file', startup: 'app.js', mode: 'production', server: 'gunicorn', module: 'app:app', workers: 2, command: '', image: '', build: false, container_port: 80, target: 'http://127.0.0.1:8080', memory_mb: 0, enabled: true }, cfg.preset || {}),
 			env: [],
 			volumes: [],
+			imp: { file: null, mode: 'auto', root: 'app', create: true, uploaded: 0, busy: false, dragging: false, error: '', result: null },
 			runtimes: null,
 			scripts: {},
 			busy: false,
@@ -1256,6 +1257,8 @@
 				}
 				if (this.app && this.app.type) {
 					Object.assign(this.form, this.app);
+					this.form.build = !!this.app.build;
+					if (this.app.root && !this.imp.busy) this.imp.root = this.app.root;
 					this.env = Object.entries(this.app.env || {}).map(([k, v]) => ({ k, v }));
 					this.volumes = (this.app.volumes || []).slice();
 					if (this.app.type === 'node') this.loadScripts();
@@ -1272,6 +1275,58 @@
 					if (!this.form.root || this.form.root === 'pyapp') this.form.root = 'app';
 				}
 				if (t === 'python' && !Object.keys(this.runtimes?.python?.installed || {}).includes(String(this.form.version))) this.form.version = 'system';
+			},
+			typeLabel(t) {
+				return { node: 'Node.js', python: 'Python', docker: 'Docker', static: HP.t('Web PHP/HTML'), unknown: HP.t('tipo desconocido') }[t] || t;
+			},
+			pickArchive(f) {
+				if (!f) return;
+				if (!/\.(zip|tar|tgz|tbz2?|txz|tar\.(gz|bz2|xz))$/i.test(f.name)) {
+					this.imp.error = HP.t('Formato no admitido: usa .zip, .tar.gz, .tgz, .tar.bz2 o .tar.xz');
+					return;
+				}
+				Object.assign(this.imp, { file: f, uploaded: 0, error: '', result: null });
+			},
+			async uploadArchive() {
+				const f = this.imp.file;
+				const id = Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, '0')).join('');
+				const size = 8 * 1024 * 1024;
+				for (let i = 0, off = 0; off < f.size; i++, off += size) {
+					const res = await fetch('/pro/databases/upload.php', {
+						method: 'POST',
+						credentials: 'same-origin',
+						headers: { 'Content-Type': 'application/octet-stream', 'X-Token': window.HP_TOKEN, 'X-Upload-Kind': 'app', 'X-Upload-Id': id, 'X-Chunk-Index': String(i), 'X-File-Size': String(f.size), 'X-File-Name': encodeURIComponent(f.name) },
+						body: f.slice(off, off + size),
+					});
+					const j = await res.json().catch(() => ({ error: HP.t('Error %s', res.status) }));
+					if (!res.ok || j.error) throw new Error(j.error || HP.t('Error %s', res.status));
+					this.imp.uploaded = j.received;
+				}
+				return 'upload:' + id;
+			},
+			async importArchive() {
+				if (!this.imp.file) return;
+				if (this.app && this.app.type && this.imp.create && !(await HP.confirm(HP.t('El dominio ya tiene una aplicación %s. Se reemplazará su código (lo anterior se guarda como copia .bak) y se reiniciará. ¿Continuar?', this.typeLabel(this.app.type)), { ok: HP.t('Importar') }))) return;
+				Object.assign(this.imp, { busy: true, error: '', result: null });
+				try {
+					const source = await this.uploadArchive();
+					const r = await HP.runJob('app-import', { user: this.user, domain: this.domain, source, root: this.imp.root || 'app', mode: this.imp.mode, create: this.imp.create }, HP.t('Importando %s', this.imp.file.name));
+					const res = (r && r.result) || null;
+					Object.assign(this.imp, { result: res, file: null, uploaded: 0 });
+					if (res && res.app) {
+						HP.toast(HP.t('Aplicación importada y en marcha'));
+						await this.reload();
+					} else if (res && ['node', 'python', 'docker'].includes(res.detected.type)) {
+						this.setType(res.detected.type);
+						Object.assign(this.form, res.detected.config, { root: res.root });
+						HP.toast(HP.t('Archivos importados: revisa la configuración y crea la aplicación'));
+					} else if (res) {
+						HP.toast(res.detected.type === 'static' ? HP.t('Web copiada a public_html') : HP.t('Archivos importados'));
+					}
+				} catch (e) {
+					this.imp.error = e.message;
+				}
+				this.imp.busy = false;
 			},
 			async loadScripts() {
 				try {

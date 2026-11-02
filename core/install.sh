@@ -39,6 +39,20 @@ install -o root -g root -m 644 $S/templates/hp-app.stpl $TPL/hp-app.stpl
 install -o root -g root -m 644 $S/templates/hp-apache.tpl $TPL/hp-apache.tpl
 install -o root -g root -m 644 $S/templates/hp-apache.stpl $TPL/hp-apache.stpl
 
+echo "== Plantillas nginx de Moodle e instaladores de Instalación rápida (Moodle, LimeSurvey, phpBB)"
+for t in hp-moodle hp-moodle-public; do
+	install -o root -g root -m 644 $S/templates/$t.tpl $TPL/$t.tpl
+	install -o root -g root -m 644 $S/templates/$t.stpl $TPL/$t.stpl
+done
+for d in $S/webapps/*/; do
+	[ -d "$d" ] || continue
+	n=$(basename "$d")
+	mkdir -p $WEB/src/app/WebApp/Installers/$n
+	cp -a "$d." $WEB/src/app/WebApp/Installers/$n/
+	chown -R root:root $WEB/src/app/WebApp/Installers/$n
+	find $WEB/src/app/WebApp/Installers/$n -type d -exec chmod 755 {} + ; find $WEB/src/app/WebApp/Installers/$n -type f -exec chmod 644 {} +
+done
+
 echo "== Interfaz web (/pro)"
 rm -rf $WEB/pro.new && cp -a $S/web/pro $WEB/pro.new
 rm -rf $WEB/pro && mv $WEB/pro.new $WEB/pro
@@ -67,6 +81,13 @@ patch_home $WEB/login/index.php
 
 # El filtro CSRF de Hestia solo deja entrar por GET sin "Referer" a ciertas páginas de inicio
 # (marcadores, URL escrita a mano, redirección desde "/"): se suman Inicio y Sitios de iaachz-panel.
+# Instalación rápida: Hestia escapa dos veces las etiquetas (htmlentities + tohtml) y los acentos salen como &amp;oacute;
+WAPP=$WEB/templates/pages/setup_webapp.php
+if [ -f $WAPP ] && ! grep -q "iaachz-panel" $WAPP; then
+	[ -f "$PRO/backup/$VERSION/templates_pages_setup_webapp.php" ] || cp -a $WAPP "$PRO/backup/$VERSION/templates_pages_setup_webapp.php"
+	sed -i 's#? htmlentities(\$form_control\["label"\])#? $form_control["label"] /* iaachz-panel: tohtml() ya escapa */#; s#^\(\s*\)\$field_label = htmlentities(\$field_label);#\1// iaachz-panel: sin doble escape de la etiqueta#' $WAPP
+fi
+
 CSRF=$WEB/inc/prevent_csrf.php
 if [ -f $CSRF ] && ! grep -q "iaachz-panel" $CSRF; then
 	cp -a $CSRF "$PRO/backup/$VERSION/inc_prevent_csrf.php"

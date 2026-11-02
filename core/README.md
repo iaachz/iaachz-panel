@@ -14,7 +14,9 @@ Se instala junto a Hestia sin reemplazar su motor: usa sus comandos `v-*` y aña
 | Subscriptions / Customers | Suscripciones con plan, consumo de disco y tráfico, dominios y apps | `/pro/subscriptions/` |
 | Node.js Toolkit | Versiones 20/22/24/26 (nodejs.org, SHA256), servicio systemd por app, npm install, scripts de package.json, variables, registros | Aplicaciones / dominio → Aplicación |
 | Python | Sistema + 3.10–3.14 (uv), venv por app, Gunicorn / Uvicorn / comando, pip install | idem |
-| Docker | Instalación en un clic, contenedores, imágenes, pilas Compose, contenedor publicado en un dominio con SSL | `/pro/docker/` |
+| Docker | Instalación en un clic, contenedores, imágenes, pilas Compose, contenedor publicado en un dominio con SSL (imagen de Docker Hub o construida con el `Dockerfile` de una carpeta del dominio) | `/pro/docker/` |
+| Importar una aplicación desde un archivo | Arrastrar un `.zip` / `.tar.gz` (hasta 8 GB, por partes) y detección automática: **Node.js** (`package.json`, versión por `engines`/`.nvmrc`, `npm start` o archivo principal, `npm run build` si hace falta), **Python** (Django, Flask, FastAPI…, `requirements.txt` o `pyproject.toml`), **Docker** (`Dockerfile`, puerto por `EXPOSE`) o web **PHP/HTML** (a `public_html`). Se descomprime como el usuario, quita la carpeta única del zip y guarda lo anterior como `carpeta.bak-fecha`; opcionalmente crea y arranca la app | dominio → Aplicación |
+| Instalación rápida (más apps) | **Moodle** con versión a elegir (5.3, 5.2, 5.1, 5.0 y 4.5 LTS; plantillas nginx `hp-moodle` / `hp-moodle-public` para la raíz `public/` de 5.1+, datos en `private/moodledata`, cron cada minuto), **LimeSurvey** y **phpBB**. Lo largo (crear tablas, instalador de consola) corre como tarea de `v-hp`; las contraseñas no van en la línea de comandos de la tarea | Instalación rápida de aplicación (Hestia) |
 | Apache & nginx Settings | Por dominio: **solo nginx** (PHP-FPM directo) o **nginx + Apache** (respeta `.htaccess`; nginx sirve los estáticos, lista de extensiones configurable). Apache escucha solo en `127.0.0.1:7080` y usa el mismo pool PHP-FPM del dominio | dominio → Hosting y PHP, asistente |
 | Databases → Import / Export Dump | Importar volcados `.sql`, `.gz`, `.zip`, `.bz2`, `.xz`, `.zst` subidos desde el navegador (por partes, hasta 8 GB) o desde un archivo del servidor; opción de vaciar antes; exportar `.sql.gz`; ver tablas. La importación usa un usuario temporal limitado a esa base de datos (Hestia por consola usa la cuenta administradora) y reasigna vistas/triggers/rutinas a su usuario | `/pro/databases/` |
 | Databases → phpMyAdmin | Botón **phpMyAdmin** en cada base de datos que entra ya autenticado y solo a esa base: ticket aleatorio de un solo uso (60 s, atado al navegador con una cookie, no a la IP), usuario MySQL temporal limitado a esa base que se borra a las 3 h (`hp-sso.php` + `conf.d/90-iaachz-panel-sso.php`). No necesita la API de Hestia | `/pro/databases/` |
@@ -57,6 +59,8 @@ Todo lo demás son archivos nuevos. Los cambios llevan la marca `iaachz-panel` y
 - `web/index.php`, `web/list/index.php`, `web/login/index.php` → el inicio pasa a `/pro/`.
 - `web/inc/prevent_csrf.php` → `/pro/` y `/pro/sites/` admitidos como páginas de entrada (marcadores).
 - `web/js/custom_scripts/iaachz-panel.php` (mecanismo oficial de Hestia) → carga CSS/JS.
+- `web/templates/pages/setup_webapp.php` → Instalación rápida: las etiquetas de los formularios ya no se escapan dos veces (los acentos salían como `&amp;oacute;`).
+- `web/src/app/WebApp/Installers/{Moodle,LimeSurvey,phpBB,IaachzPanel}` (carpetas nuevas) → instaladores de Instalación rápida; `IaachzPanel/PanelJob.php` es el código común, no un instalador.
 
 Las actualizaciones de Hestia (`apt upgrade`) sobrescriben esos archivos; el hook `/etc/hestiacp/hooks/post_install.sh` vuelve a aplicar los cambios automáticamente.
 

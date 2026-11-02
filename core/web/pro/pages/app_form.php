@@ -14,7 +14,7 @@
 						<span class="hp-chip" :class="'hp-chip-' + app.type" x-html="{node:'JS',python:'PY',docker:'<i class=\'fas fa-box\'></i>',proxy:'<i class=\'fas fa-right-left\'></i>'}[app.type]"></span>
 						<div>
 							<div class="hp-flex hp-wrap">
-								<b style="font-size:1.05rem;color:var(--hp-text)" x-text="{node:'Node.js ' + app.version, python:'Python ' + app.version, docker:HP.t('Docker · ') + app.image, proxy:HP.t('Proxy → ') + app.target}[app.type]"></b>
+								<b style="font-size:1.05rem;color:var(--hp-text)" x-text="{node:'Node.js ' + app.version, python:'Python ' + app.version, docker:HP.t('Docker · ') + (app.build ? HP.t('Dockerfile de %s', app.root) : app.image), proxy:HP.t('Proxy → ') + app.target}[app.type]"></b>
 								<span class="hp-badge" :class="stateClass(app.state)"><i class="fas fa-circle"></i><span x-text="stateLabel(app.state)"></span></span>
 							</div>
 							<div class="hp-muted hp-small hp-mt" style="margin-top:4px">
@@ -46,6 +46,62 @@
 			</div>
 		</template>
 
+		<!-- Importar desde un archivo -->
+		<div class="hp-card hp-mb">
+			<div class="hp-card-head">
+				<h2 class="hp-card-title"><i class="fas fa-file-zipper"></i><?= __e('Importar desde un archivo (.zip / .tar.gz)') ?></h2>
+			</div>
+			<div class="hp-card-body hp-form">
+				<label class="hp-choice hp-drop" :class="imp.dragging && 'active'"
+					x-on:dragover.prevent="imp.dragging = true" x-on:dragleave="imp.dragging = false" x-on:drop.prevent="imp.dragging = false; pickArchive($event.dataTransfer.files[0])">
+					<input type="file" accept=".zip,.tar,.tgz,.gz,.tbz2,.bz2,.txz,.xz" x-on:change="pickArchive($event.target.files[0]); $event.target.value = ''" :disabled="imp.busy">
+					<i class="fas fa-cloud-arrow-up"></i>
+					<b x-text="imp.file ? imp.file.name + ' (' + HP.bytes(imp.file.size) + ')' : HP.t('Arrastra aquí el archivo de tu proyecto o haz clic para elegirlo')"></b>
+					<small><?= __e('Se detecta solo si es Node.js (package.json), Python (requirements.txt, pyproject, manage.py…), Docker (Dockerfile) o una web PHP/HTML. Hasta 8 GB, se sube por partes.') ?></small>
+				</label>
+				<template x-if="imp.uploaded > 0 && imp.file">
+					<div>
+						<div class="hp-between hp-small"><span x-text="imp.uploaded >= imp.file.size ? HP.t('Subido') : HP.t('Subiendo…')"></span><span x-text="HP.bytes(imp.uploaded) + ' / ' + HP.bytes(imp.file.size)"></span></div>
+						<div class="hp-progress" style="margin-top:6px"><span :style="'width:' + Math.round(imp.uploaded * 100 / imp.file.size) + '%'"></span></div>
+					</div>
+				</template>
+				<div class="hp-form-row">
+					<div class="hp-field">
+						<label><?= __e('Tipo') ?></label>
+						<select class="hp-select" x-model="imp.mode">
+							<option value="auto"><?= __e('Detectar automáticamente') ?></option>
+							<option value="node">Node.js</option>
+							<option value="python">Python</option>
+							<option value="docker" :disabled="!isAdmin"><?= __e('Docker (Dockerfile)') ?></option>
+							<option value="static"><?= __e('Web PHP / HTML (a public_html)') ?></option>
+						</select>
+					</div>
+					<div class="hp-field">
+						<label><?= __e('Carpeta de la aplicación') ?></label>
+						<div class="hp-flex" style="gap:0"><span class="hp-addon" x-text="'~/web/' + domain + '/'"></span><input class="hp-input" x-model="imp.root" placeholder="app"></div>
+						<p class="hp-hint"><?= __e('Las webs PHP/HTML van a public_html. Si la carpeta tiene archivos, se guardan como carpeta.bak-fecha.') ?></p>
+					</div>
+				</div>
+				<label class="hp-check"><input type="checkbox" x-model="imp.create"><span><b><?= __e('Crear y arrancar la aplicación al terminar') ?></b><small><?= __e('Instala dependencias (npm / pip), compila si hace falta (npm run build) y la pone en marcha. Desmárcalo para revisar la configuración antes.') ?></small></span></label>
+				<template x-if="imp.result">
+					<div class="inline-alert" :class="imp.result.detected.type === 'unknown' ? 'inline-alert-danger' : 'inline-alert-info'" style="margin:0;display:block">
+						<div><i class="fas fa-wand-magic-sparkles"></i> <b x-text="HP.t('Detectado: %s', typeLabel(imp.result.detected.type) + (imp.result.detected.framework ? ' · ' + imp.result.detected.framework : ''))"></b>
+							<span x-text="' ~/web/' + domain + '/' + imp.result.root"></span><span x-show="imp.result.backup" x-text="' ' + HP.t('(lo anterior quedó en %s)', imp.result.backup)"></span></div>
+						<template x-for="n in (imp.result.detected.notes || []).concat(imp.result.notes || [])"><div class="hp-small" style="margin-top:4px"><i class="fas fa-triangle-exclamation"></i> <span x-text="n"></span></div></template>
+						<div class="hp-small" style="margin-top:4px" x-show="!imp.result.app && ['node','python','docker'].includes(imp.result.detected.type)"><?= __e('Se rellenó la configuración de abajo: revísala y pulsa Crear aplicación.') ?></div>
+						<div class="hp-small" style="margin-top:4px" x-show="(imp.result.detected.alternatives || []).includes('docker')"><?= __e('También trae un Dockerfile: si lo prefieres, elige Docker → «Construir desde Dockerfile».') ?></div>
+					</div>
+				</template>
+				<p class="inline-alert inline-alert-danger" x-show="imp.error" x-text="imp.error" style="margin:0"></p>
+				<div class="hp-between hp-wrap">
+					<span></span>
+					<button type="button" class="hp-btn hp-btn-primary" :class="imp.busy && 'is-loading'" :disabled="imp.busy || !imp.file" x-on:click="importArchive()">
+						<i class="fas" :class="imp.busy ? 'fa-circle-notch fa-spin' : 'fa-file-import'"></i><?= __e('Importar') ?>
+					</button>
+				</div>
+			</div>
+		</div>
+
 		<div class="hp-card">
 			<div class="hp-card-head">
 				<h2 class="hp-card-title"><i class="fas fa-sliders"></i><span x-text="app && app.type ? HP.t('Configuración de la aplicación') : HP.t('Configurar una aplicación para este dominio')"></span></h2>
@@ -61,7 +117,7 @@
 							<span class="hp-chip hp-chip-python hp-chip-sm">PY</span><b>Python</b><small><?= __e('Django, Flask, FastAPI con entorno virtual propio.') ?></small>
 						</label>
 						<label class="hp-choice" :class="form.type === 'docker' && 'active'" x-on:click="isAdmin && setType('docker')" :style="!isAdmin && 'opacity:.5;cursor:not-allowed'">
-							<span class="hp-chip hp-chip-docker hp-chip-sm"><i class="fas fa-box"></i></span><b>Docker</b><small x-text="isAdmin ? HP.t('Cualquier imagen de Docker Hub publicada en el dominio.') : HP.t('Solo el administrador.')"></small>
+							<span class="hp-chip hp-chip-docker hp-chip-sm"><i class="fas fa-box"></i></span><b>Docker</b><small x-text="isAdmin ? HP.t('Imagen de Docker Hub o tu propio Dockerfile, publicada en el dominio.') : HP.t('Solo el administrador.')"></small>
 						</label>
 						<label class="hp-choice" :class="form.type === 'proxy' && 'active'" x-on:click="setType('proxy')">
 							<span class="hp-chip hp-chip-proxy hp-chip-sm"><i class="fas fa-right-left"></i></span><b><?= __e('Proxy inverso') ?></b><small><?= __e('Reenvía el dominio a otro servidor o puerto.') ?></small>
@@ -157,10 +213,19 @@
 						<template x-if="runtimes.docker && !runtimes.docker.installed">
 							<p class="inline-alert inline-alert-danger" style="margin:0"><i class="fas fa-circle-exclamation"></i> <?= __e('Docker no está instalado.') ?> <a href="/pro/docker/"><?= __e('Instálalo en Docker') ?></a>.</p>
 						</template>
+						<div class="hp-segmented" style="align-self:flex-start">
+							<button type="button" :class="!form.build && 'active'" x-on:click="form.build = false"><?= __e('Imagen de Docker Hub') ?></button>
+							<button type="button" :class="form.build && 'active'" x-on:click="form.build = true"><?= __e('Construir desde Dockerfile') ?></button>
+						</div>
 						<div class="hp-form-row">
-							<div class="hp-field">
+							<div class="hp-field" x-show="!form.build">
 								<label><?= __e('Imagen') ?></label>
 								<input class="hp-input hp-mono" x-model="form.image" placeholder="<?= __e('nginx:alpine · ghost:5 · grafana/grafana') ?>">
+							</div>
+							<div class="hp-field" x-show="form.build">
+								<label><?= __e('Carpeta con el Dockerfile') ?></label>
+								<div class="hp-flex" style="gap:0"><span class="hp-addon" x-text="'~/web/' + domain + '/'"></span><input class="hp-input" x-model="form.root" placeholder="app"></div>
+								<p class="hp-hint"><?= __e('Se construye con docker build al guardar (y cada vez que pulses Guardar y reiniciar).') ?></p>
 							</div>
 							<div class="hp-field">
 								<label><?= __e('Puerto del contenedor') ?></label>

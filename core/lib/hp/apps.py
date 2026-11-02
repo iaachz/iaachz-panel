@@ -158,7 +158,16 @@ def _validate(user, domain, cfg, old):
         app["workers"] = max(1, min(int(cfg.get("workers") or 2), 32))
 
     elif t == "docker":
-        image = (cfg.get("image") or "").strip().lower()
+        if cfg.get("build"):  # imagen construida con el Dockerfile de una carpeta del dominio
+            root_rel = (cfg.get("root") or "app").strip().strip("/")
+            ctx = safe_subpath(base, root_rel)
+            if not any(os.path.isfile(f"{ctx}/{n}") for n in ("Dockerfile", "dockerfile", "Containerfile")):
+                raise HPError(f"No hay Dockerfile en ~/web/{domain}/{root_rel}")
+            app["build"] = True
+            app["root"] = root_rel
+            image = f"hp-local/{user}-{domain}:latest".lower()
+        else:
+            image = (cfg.get("image") or "").strip().lower()
         if not RE_IMAGE.match(image):
             raise HPError("Imagen Docker no válida")
         app["image"] = image
@@ -485,7 +494,15 @@ def _docker_run(user, domain, app, pull=False):
     if not exe:
         raise HPError("Docker no está instalado (instálalo desde Docker → Instalar)")
     name = container_name(user, domain)
-    if pull:
+    if pull and app.get("build"):
+        ctx = safe_subpath(domain_dir(user, domain), app["root"])
+        step(f"Construyendo imagen desde el Dockerfile de {app['root']}", "running")
+        p = subprocess.run([exe, "build", "-t", app["image"], ctx], text=True, capture_output=True, timeout=3600)
+        print(p.stdout[-6000:] + p.stderr[-6000:])
+        if p.returncode != 0:
+            raise HPError("docker build falló: revisa el registro")
+        step(f"Imagen {app['image']} construida")
+    elif pull:
         step(f"Descargando imagen {app['image']}", "running")
         p = subprocess.run([exe, "pull", app["image"]], text=True, capture_output=True, timeout=1800)
         print(p.stdout[-4000:] + p.stderr[-2000:])
@@ -666,6 +683,9 @@ def install_deps(user, domain, quiet_if_missing=False):
         if os.path.exists(f"{root}/requirements.txt"):
             step("Instalando requirements.txt", "running")
             _stream([uv, "pip", "install", "--python", f"{venv}/bin/python", "-r", "requirements.txt"], user, root, env)
+        elif os.path.exists(f"{root}/pyproject.toml"):
+            step("Instalando dependencias de pyproject.toml", "running")
+            _stream([uv, "pip", "install", "--python", f"{venv}/bin/python", "-r", "pyproject.toml"], user, root, env)
         elif not quiet_if_missing:
             step("No hay requirements.txt", "warning")
         if app["server"] in ("gunicorn", "uvicorn"):

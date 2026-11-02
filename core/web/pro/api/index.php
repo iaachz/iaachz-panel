@@ -316,6 +316,23 @@ switch ($a) {
 		hp_ok(hp_call(["app-scripts", $user, $domain]));
 	case "app-run-script":
 		hp_ok(hp_call(["app-run-script", $user, $domain, (string) ($in["script"] ?? "")]));
+	case "app-import":
+		// archivo subido por partes (databases/upload.php con X-Upload-Kind: app)
+		$src = (string) ($in["source"] ?? "");
+		$id = str_starts_with($src, "upload:") ? substr($src, 7) : "";
+		$meta = preg_match('/^[a-f0-9]{32}$/', $id) ? json_decode((string) @file_get_contents("/var/lib/iaachz-panel/uploads/$id.json"), true) : null;
+		if (!$meta || $meta["owner"] !== $_SESSION["user"] || $meta["received"] !== $meta["size"] || ($meta["kind"] ?? "") !== "app") {
+			hp_bad(__('La subida no está completa o no es tuya'));
+		}
+		$mode = (string) ($in["mode"] ?? "auto");
+		hp_ok(hp_call(["app-import", $user, $domain, hp_b64([
+			"source" => $src,
+			"name" => $meta["name"],
+			"root" => (string) ($in["root"] ?? "app"),
+			"mode" => in_array($mode, ["auto", "node", "python", "docker", "static"], true) ? $mode : "auto",
+			"create" => !empty($in["create"]),
+			"admin" => $admin,
+		])]));
 
 	// ---------------------------------------------------------------- git
 	case "git-get":

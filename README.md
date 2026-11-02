@@ -16,7 +16,7 @@ reemplazar su motor: usa sus comandos `v-*` y añade los que faltaban.
 
 | Módulo | Qué añade |
 |---|---|
-| **core** (`core/`) | Panel de inicio con métricas en vivo, lista de sitios y dominios, asistente "Agregar dominio" en un paso, apps Node.js / Python / Docker, Git, importar/exportar bases de datos, phpMyAdmin con acceso directo por base, monitorización y tráfico, alertas, Advisor, bloqueo por país/IP, Apache opcional detrás de nginx. Detalle completo en [`core/README.md`](core/README.md). |
+| **core** (`core/`) | Panel de inicio con métricas en vivo, lista de sitios y dominios, asistente "Agregar dominio" en un paso, apps Node.js / Python / Docker (también importando un `.zip` con detección automática del tipo), Instalación rápida de Moodle (versión a elegir), LimeSurvey y phpBB, Git, importar/exportar bases de datos, phpMyAdmin con acceso directo por base, monitorización y tráfico, alertas, Advisor, bloqueo por país/IP, Apache opcional detrás de nginx. Detalle completo en [`core/README.md`](core/README.md). |
 | **subdominio** (`addons/subdominio/`) | Botón **Agregar subdominio** en la lista de dominios web. Se reaplica solo tras cada `apt`/`dpkg`. |
 | **tunnels** (`addons/tunnels/`) | Publica una app que corre en otra máquina de tu red Tailscale bajo un dominio propio con HTTPS (Let's Encrypt), y agrupa los dominios por zona. |
 | **dns-proveedor** (`addons/dns-proveedor/`) | Botón **Copiar al proveedor**: muestra los registros DNS de una zona (o los recomendados para un sitio) listos para pegar en el panel de tu proveedor, y como archivo de zona BIND. |
