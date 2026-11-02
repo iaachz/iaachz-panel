@@ -27,6 +27,7 @@ Se instala junto a Hestia sin reemplazar su motor: usa sus comandos `v-*` y aña
 | Uptime (disponibilidad) | Cada minuto sondea cada sitio desde el servidor: puerto de la aplicación y petición real a nginx con el Host del dominio; también la conexión a internet del servidor. Muestra cuánto lleva en línea cada sitio, % de disponibilidad (hoy / 7 / 30 días), tiempo de respuesta y un **registro** de caídas, recuperaciones, cortes de internet y huecos en que el servidor estuvo parado (90 días de estadísticas). Caída = 2 fallos seguidos; avisa en la campana y por correo | `/pro/uptime/` |
 | Advisor | Puntuación y recomendaciones (SSL, HTTPS, cortafuegos, actualizaciones, reinicio pendiente, disco, apps caídas, PHP sin soporte) | `/pro/advisor/` |
 | Tools & Settings | Todo lo del servidor agrupado, tareas en segundo plano, terminal web en un clic | `/pro/tools/` |
+| Actualizaciones del panel | Compara lo instalado con GitHub (versiones publicadas `vX.Y.Z` o rama `main`), muestra los cambios y actualiza en un clic o sola cada noche; si la instalación falla vuelve a la versión anterior. Ver [docs/INSTALACION.md](../docs/INSTALACION.md#6-actualizar) | `/pro/tools/#updates` |
 
 También: estilo nuevo para la pantalla de acceso y las páginas nativas de Hestia, tema claro y oscuro, móvil.
 

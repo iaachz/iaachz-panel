@@ -163,6 +163,8 @@ systemctl daemon-reload
 systemctl enable iaachz-panel-firewall >/dev/null 2>&1 || true
 grep -q "uptime-check" /etc/cron.d/iaachz-panel || echo '* * * * * root /usr/local/hestia/bin/v-hp uptime-check >/dev/null 2>&1' >> /etc/cron.d/iaachz-panel
 grep -q "geo-update-cron" /etc/cron.d/iaachz-panel || echo '17 4 4 * * root /usr/local/hestia/bin/v-hp geo-update-cron >/dev/null 2>&1' >> /etc/cron.d/iaachz-panel
+# Actualizaciones del panel: una consulta diaria a GitHub (instala sola solo si se activa en Herramientas)
+grep -q "update-cron" /etc/cron.d/iaachz-panel || echo '41 3 * * * root /usr/local/hestia/bin/v-hp update-cron >/dev/null 2>&1' >> /etc/cron.d/iaachz-panel
 # Si se activa el cortafuegos de Hestia, este vacía INPUT: su gancho custom.sh vuelve a poner nuestras reglas
 FWD=$HESTIA/data/firewall
 if [ -d $FWD ] && [ -n "$(ls -A $FWD 2>/dev/null)" ] && ! grep -qs "iaachz-panel" $FWD/custom.sh; then

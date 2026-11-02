@@ -140,6 +140,11 @@ switch ($a) {
 	case "advisor":
 		hp_need_admin();
 		hp_ok(hp_call(["advisor"]));
+	case "update-status":
+	case "update-check":
+	case "update-apply":
+		hp_need_admin();
+		hp_ok(hp_call([$a]));
 	case "settings-get":
 		hp_need_admin();
 		hp_ok(hp_call(["settings-get"]));

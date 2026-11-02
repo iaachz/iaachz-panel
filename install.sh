@@ -44,6 +44,7 @@ fi
 command -v python3 >/dev/null && ok "python3" || fail "falta python3"
 [ -x $HESTIA/php/bin/php ] && ok "PHP de Hestia" || fail "falta $HESTIA/php/bin/php"
 command -v patch >/dev/null && ok "patch" || fail "falta patch (apt install patch)"
+command -v git >/dev/null && ok "git (actualizaciones desde GitHub)" || warn "falta git: el panel no podrá actualizarse desde GitHub (apt install git)"
 command -v nginx >/dev/null && ok "nginx" || fail "iaachz-panel necesita Hestia con nginx"
 command -v tailscale >/dev/null && ok "tailscale (túneles VPN)" || warn "tailscale no está instalado: el módulo de túneles no tendrá destinos VPN"
 systemctl is-active --quiet hestia && ok "servicio hestia activo" || warn "el servicio hestia no está activo"
@@ -82,6 +83,20 @@ fi
 if quiere dns-proveedor; then
 	echo "== DNS del proveedor"
 	bash "$REPO/addons/dns-proveedor/install.sh"
+fi
+
+# Versión instalada: la compara Herramientas y ajustes → Actualizaciones del panel con la de GitHub
+if [ -d /opt/iaachz-panel ]; then
+	repo_git() { git -c safe.directory='*' -C "$REPO" "$@"; }
+	if command -v git >/dev/null && repo_git rev-parse HEAD >/dev/null 2>&1; then
+		COMMIT=$(repo_git rev-parse HEAD)
+		VER=$(repo_git describe --tags --exact-match 2>/dev/null || echo "main@${COMMIT:0:7}")
+	else
+		COMMIT=""
+		VER="sin control de versiones"
+	fi
+	printf '{"version": "%s", "commit": "%s", "installed": %s}\n' "$VER" "$COMMIT" "$(date +%s)" > /opt/iaachz-panel/version.json
+	chmod 644 /opt/iaachz-panel/version.json
 fi
 
 echo
