@@ -46,12 +46,13 @@ def _tcp(host, port, timeout=CONNECT_TIMEOUT):
         return False
 
 
-def _http(domain, use_ssl):
-    """Petición real a nginx local con el Host del dominio. Devuelve (código, ms, motivo)."""
+def _http(domain, use_ssl, ip=""):
+    """Petición real a nginx con el Host del dominio, en la IP en la que Hestia lo hace escuchar
+    (nginx no siempre escucha en 127.0.0.1). Devuelve (código, ms, motivo)."""
     port = 443 if use_ssl else 80
     t0 = time.time()
     try:
-        raw = socket.create_connection(("127.0.0.1", port), timeout=CONNECT_TIMEOUT)
+        raw = socket.create_connection((ip or "127.0.0.1", port), timeout=CONNECT_TIMEOUT)
     except ConnectionRefusedError:
         return 0, 0, "nginx"
     except OSError:
@@ -92,10 +93,10 @@ def _http(domain, use_ssl):
 
 
 def probe_site(t):
-    """t = {domain, ssl, port, host}. Devuelve {ok, ms, code, reason}."""
+    """t = {domain, ssl, ip, port, host}. Devuelve {ok, ms, code, reason}."""
     if t.get("port") and not _tcp(t.get("host") or "127.0.0.1", t["port"]):
         return {"ok": False, "ms": 0, "code": 0, "reason": "port"}
-    code, ms, reason = _http(t["domain"], t["ssl"])
+    code, ms, reason = _http(t["domain"], t["ssl"], t.get("ip", ""))
     return {"ok": reason is None, "ms": ms, "code": code, "reason": reason}
 
 
@@ -124,7 +125,8 @@ def targets(users=None):
                     host, _, p = hp.rpartition(":")
                     port = p if p.isdigit() else None
                     host = host.strip("[]") if port else None
-            out.append({"domain": d, "user": u, "ssl": w.get("SSL") == "yes", "port": port, "host": host})
+            out.append({"domain": d, "user": u, "ssl": w.get("SSL") == "yes", "ip": w.get("IP", ""), "port": port,
+                        "host": host})
     return out
 
 

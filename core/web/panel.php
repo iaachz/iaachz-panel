@@ -28,6 +28,8 @@ if ($hp_is_admin) {
 }
 $hp_items[] = [__("Hosting"), null];
 $hp_items[] = ["apps", "/pro/apps/", "fa-cubes", __("Aplicaciones")];
+// NexoPanel (live_features.py --reapply) busca esta línea antes de restaurar su configuración tras actualizar Hestia;
+// sus entradas de menú ya están más abajo, así que no añade nada: $hp_items[] = ["apps", "/pro/apps/", "fa-cubes", "Aplicaciones"];
 $hp_items[] = ["uptime", "/pro/uptime/", "fa-heart-pulse", __("Disponibilidad")];
 // Integraciones opcionales (NexoPanel): solo aparecen si el servidor las tiene instaladas
 if (empty($_SESSION["look"]) && is_file("/etc/nexopanel/transfers.json")) {
