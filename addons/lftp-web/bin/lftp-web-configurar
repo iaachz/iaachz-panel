@@ -1,0 +1,106 @@
+#!/bin/bash
+# Configura LFTP Web instalado desde el paquete .deb.
+# Uso: sudo lftp-web-configurar
+#
+# Obliga a crear (o reutilizar) un usuario Linux de acceso y a fijar su contraseña.
+# Ese usuario solo puede autenticarse por contraseña SSH desde este mismo servidor
+# (es decir, a través de la web); desde Internet no puede entrar por SSH, ni tiene shell.
+set -euo pipefail
+
+GROUP="lftpweb"
+ENV_FILE="/etc/lftp-web/lftp-web.env"
+SSHD_DROPIN="/etc/ssh/sshd_config.d/60-lftp-web.conf"
+
+die() { echo "ERROR: $*" >&2; exit 1; }
+ask() { local prompt="$1" default="$2" reply; read -r -p "$prompt [$default]: " reply; echo "${reply:-$default}"; }
+env_get() { grep -oP "^$1=\K.*" "$ENV_FILE" 2>/dev/null || true; }
+env_set() { if grep -q "^$1=" "$ENV_FILE"; then sed -i "s|^$1=.*|$1=$2|" "$ENV_FILE"; else echo "$1=$2" >> "$ENV_FILE"; fi; }
+
+[ "$(id -u)" -eq 0 ] || die "Ejecuta con sudo: sudo lftp-web-configurar"
+[ -t 0 ] || die "Este comando es interactivo: ejecútalo en una terminal."
+[ -f "$ENV_FILE" ] || die "No encuentro $ENV_FILE. ¿Está instalado el paquete lftp-web?"
+getent group "$GROUP" >/dev/null || addgroup --quiet --system "$GROUP"
+
+# --- 1. Usuario de acceso (obligatorio) -----------------------------------
+echo "== Usuario de acceso a LFTP Web"
+echo "   Se usará para entrar en la web. No tendrá terminal ni acceso SSH desde fuera."
+while true; do
+    LOGIN_USER="$(ask "Nombre de usuario" "lftpweb")"
+    [[ "$LOGIN_USER" =~ ^[a-z_][a-z0-9_-]{0,31}$ ]] || { echo "   Nombre no válido (minúsculas, números, _ o -)."; continue; }
+    [[ "$LOGIN_USER" != "root" && "$LOGIN_USER" != "lftp-web" ]] || { echo "   Ese nombre está reservado."; continue; }
+    if id "$LOGIN_USER" >/dev/null 2>&1; then
+        # Una cuenta con privilegios no debe ser la llave de una aplicación web.
+        if id -nG "$LOGIN_USER" | tr ' ' '\n' | grep -qxE 'sudo|admin|wheel|root'; then
+            echo "   '$LOGIN_USER' tiene privilegios de administrador. Elige otro nombre."; continue
+        fi
+        echo "   '$LOGIN_USER' ya existe: se añadirá al grupo $GROUP."
+        usermod -aG "$GROUP" "$LOGIN_USER"
+    else
+        useradd --gid "$GROUP" --no-create-home --home-dir /nonexistent --shell /usr/sbin/nologin "$LOGIN_USER"
+        echo "   Usuario '$LOGIN_USER' creado."
+    fi
+    break
+done
+echo "   Define su contraseña (es la que usarás en la web):"
+until passwd "$LOGIN_USER"; do echo "   Inténtalo de nuevo."; done
+
+# --- 2. sshd: contraseña solo desde localhost para el grupo ----------------
+grep -qE '^\s*Include\s+/etc/ssh/sshd_config\.d/' /etc/ssh/sshd_config \
+    || die "/etc/ssh/sshd_config no incluye sshd_config.d; no se puede configurar el acceso."
+SSH_PORT="$(/usr/sbin/sshd -T 2>/dev/null | awk '$1=="port" && !f {print $2; f=1}')"
+SSH_PORT="${SSH_PORT:-22}"
+backup=""
+[ -f "$SSHD_DROPIN" ] && backup="$(cat "$SSHD_DROPIN")"
+# Configuración efectiva de un usuario ajeno al grupo, para comprobar después que no cambia.
+others_before="$(/usr/sbin/sshd -T -C user=root,host=203.0.113.1,addr=203.0.113.1 2>&1)"
+cat > "$SSHD_DROPIN" <<EOF
+# Generado por lftp-web-configurar: el grupo $GROUP solo autentica por contraseña desde este servidor.
+Match Group $GROUP Address 127.0.0.1,::1
+    PasswordAuthentication yes
+    KbdInteractiveAuthentication no
+    PubkeyAuthentication no
+    PermitTTY no
+    ForceCommand /usr/sbin/nologin
+    AllowTcpForwarding no
+    AllowAgentForwarding no
+    X11Forwarding no
+    PermitTunnel no
+Match Group $GROUP
+    PasswordAuthentication no
+    KbdInteractiveAuthentication no
+    PubkeyAuthentication no
+EOF
+restore_sshd() {
+    if [ -n "$backup" ]; then printf '%s\n' "$backup" > "$SSHD_DROPIN"; else rm -f "$SSHD_DROPIN"; fi
+    die "$1 Se restauró la configuración anterior de sshd."
+}
+/usr/sbin/sshd -t || restore_sshd "La configuración de sshd no es válida."
+setting() { /usr/sbin/sshd -T -C "user=$1,host=$2,addr=$2" 2>/dev/null | awk -v k="$3" '$1==k && !f {print $2; f=1}'; }
+[ "$(setting "$LOGIN_USER" 127.0.0.1 passwordauthentication)" = "yes" ] || restore_sshd "sshd no permite la contraseña local para $LOGIN_USER."
+[ "$(setting "$LOGIN_USER" 203.0.113.1 passwordauthentication)" = "no" ] || restore_sshd "sshd seguiría aceptando la contraseña de $LOGIN_USER desde fuera."
+[ "$(/usr/sbin/sshd -T -C user=root,host=203.0.113.1,addr=203.0.113.1 2>&1)" = "$others_before" ] \
+    || restore_sshd "El cambio afectaría a usuarios que no son del grupo $GROUP."
+systemctl reload ssh 2>/dev/null || systemctl reload sshd
+echo "== sshd: contraseña de '$GROUP' solo desde localhost (puerto $SSH_PORT)."
+
+# --- 3. Puerto y proxy -------------------------------------------------------
+PORT="$(ask "Puerto local de la aplicación" "$(env_get LFTP_WEB_PORT)")"
+[[ "$PORT" =~ ^[0-9]+$ ]] && [ "$PORT" -ge 1 ] && [ "$PORT" -le 65535 ] || die "Puerto no válido."
+current="n"; [ "$(env_get LFTP_WEB_PROXY_HOPS)" = "1" ] && current="s"
+proxy="$(ask "¿Se publica detrás de un proxy HTTPS (Hestia/nginx) en este servidor? s/n" "$current")"
+env_set LFTP_WEB_PORT "$PORT"
+env_set LFTP_WEB_SSH_PORT "$SSH_PORT"
+env_set LFTP_WEB_SSH_GROUP "$GROUP"
+if [[ "$proxy" =~ ^[sSyY] ]]; then flag=1; else flag=0; fi
+env_set LFTP_WEB_HTTPS "$flag"
+env_set LFTP_WEB_PROXY_HOPS "$flag"
+
+systemctl restart lftp-web
+sleep 2
+systemctl is-active -q lftp-web || die "El servicio no arrancó: journalctl -u lftp-web -n 50"
+
+echo
+echo "== Listo. Entra con el usuario '$LOGIN_USER' y la contraseña que acabas de definir."
+echo "   Aplicación local: http://127.0.0.1:$PORT"
+echo "   Otro usuario:     sudo lftp-web-configurar"
+echo "   Quitar acceso:    sudo gpasswd -d <usuario> $GROUP   (cierra sus sesiones al instante)"
