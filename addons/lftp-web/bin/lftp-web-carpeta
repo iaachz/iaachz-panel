@@ -1,0 +1,82 @@
+#!/bin/bash
+# Elige dónde guarda LFTP Web los archivos del panel «Servidor de la aplicación».
+#
+#   sudo lftp-web-carpeta USUARIO       -> /home/USUARIO/lftp-archivos
+#                                          (visible, por ejemplo, en el gestor de archivos de Hestia)
+#   sudo lftp-web-carpeta --predeterminada -> /opt/lftp-web/archivos
+#
+# LFTP sigue ejecutándose como el usuario de sistema lftp-web y solo ve su carpeta: el resto de /home
+# queda oculto para el servicio. El usuario elegido (y Hestia, que actúa como él) puede mover esos
+# archivos a sus webs; LFTP no puede salir de su carpeta.
+set -euo pipefail
+
+DEFAULT=/opt/lftp-web/archivos
+DROPIN_DIR=/etc/systemd/system/lftp-web.service.d
+DROPIN=$DROPIN_DIR/carpeta.conf
+
+die() { echo "ERROR: $*" >&2; exit 1; }
+usage() { die "Uso: sudo lftp-web-carpeta USUARIO   |   sudo lftp-web-carpeta --predeterminada"; }
+
+[ "$(id -u)" -eq 0 ] || die "Ejecuta con sudo."
+[ $# -eq 1 ] || usage
+OLD="$(systemctl show lftp-web -p Environment --value | tr ' ' '\n' | sed -n 's/^LFTP_WEB_ROOT=//p')"
+OLD="${OLD:-$DEFAULT}"
+
+if [ "$1" = "--predeterminada" ]; then
+    OWNER="" NEW=$DEFAULT
+else
+    OWNER="$1"
+    [[ "$OWNER" =~ ^[a-z_][a-z0-9_-]{0,31}$ ]] || die "Usuario no válido: $OWNER"
+    [ "$OWNER" != "root" ] && [ "$OWNER" != "lftp-web" ] || die "Ese usuario no está permitido."
+    HOME_DIR="$(getent passwd "$OWNER" | cut -d: -f6)"
+    [ -n "$HOME_DIR" ] && [ -d "$HOME_DIR" ] && [[ "$HOME_DIR" == /home/* ]] || die "El usuario $OWNER no existe o su carpeta no está en /home."
+    command -v setfacl >/dev/null || die "Falta el paquete acl: sudo apt install acl"
+    NEW="$HOME_DIR/lftp-archivos"
+fi
+
+if [ "$NEW" = "$OLD" ]; then echo "LFTP Web ya guarda sus archivos en $NEW"; exit 0; fi
+if [ -L "$NEW" ] || { [ -e "$NEW" ] && [ ! -d "$NEW" ]; }; then die "$NEW existe y no es una carpeta."; fi
+# Reutilizar una carpeta con contenido (p. ej. tras reinstalar) vale si la actual está vacía; mezclar dos no.
+if [ -n "$(ls -A "$NEW" 2>/dev/null)" ] && [ -n "$(ls -A "$OLD" 2>/dev/null)" ]; then
+    die "$OLD y $NEW tienen archivos; vacía una de las dos para no mezclarlas."
+fi
+
+systemctl stop lftp-web
+if [ -n "$OWNER" ]; then
+    install -d -o "$OWNER" -g lftp-web -m 2770 "$NEW"
+else
+    install -d -o lftp-web -g lftp-web -m 2775 "$NEW"
+fi
+if [ -d "$OLD" ] && [ -n "$(ls -A "$OLD" 2>/dev/null)" ]; then
+    find "$OLD" -mindepth 1 -maxdepth 1 -exec mv -t "$NEW" {} +
+    echo "Archivos movidos de $OLD a $NEW"
+fi
+chgrp -R lftp-web "$NEW"
+find "$NEW" -type d -exec chmod g+s {} +
+if [ -n "$OWNER" ]; then
+    # ACL: el servicio (grupo lftp-web) y el usuario pueden crear, mover y borrar todo, sea quien sea el
+    # dueño de cada archivo y la umask con que se creó. Las entradas por defecto se heredan en lo nuevo.
+    setfacl -R -m "g:lftp-web:rwX,u:$OWNER:rwX" "$NEW"
+    setfacl -R -d -m "g:lftp-web:rwX,u:$OWNER:rwX,g::rwX" "$NEW"
+    mkdir -p "$DROPIN_DIR"
+    cat > "$DROPIN" <<EOF
+# Generado por lftp-web-carpeta: archivos en $NEW, compartidos con el usuario $OWNER.
+[Service]
+Environment=LFTP_WEB_ROOT=$NEW
+# /home queda vacío para el servicio, salvo su propia carpeta.
+ProtectHome=tmpfs
+BindPaths=$NEW
+EOF
+else
+    chmod -R g+rwX "$NEW"
+    rm -f "$DROPIN"
+fi
+# Una carpeta personalizada anterior que quedó vacía se retira; la predeterminada se conserva.
+if [ "$OLD" != "$DEFAULT" ]; then rmdir "$OLD" 2>/dev/null || true; fi
+
+systemctl daemon-reload
+systemctl start lftp-web
+sleep 2
+systemctl is-active -q lftp-web || die "El servicio no arrancó: journalctl -u lftp-web -n 50"
+echo "LFTP Web guarda ahora sus archivos en: $NEW"
+[ -z "$OWNER" ] || echo "El usuario $OWNER (y su gestor de archivos de Hestia) puede moverlos desde ahí a sus webs."
