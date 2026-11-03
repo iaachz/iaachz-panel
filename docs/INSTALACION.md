@@ -30,12 +30,13 @@ sudo ./install.sh             # instala todos los módulos
 ```
 
 Para instalar solo una parte: `sudo ./install.sh --only core` (también `subdominio`, `tunnels`,
-`dns-proveedor`). El módulo `tunnels` necesita `core` y `subdominio` instalados antes.
+`dns-proveedor`, `lftp-web`). El módulo `tunnels` necesita `core` y `subdominio` instalados antes;
+`lftp-web` (Archivos y transferencias, con papelera) necesita `core`.
 
 El instalador:
 
 1. Copia el código a `/opt/iaachz-panel`, `/opt/iaachz-subdominio`, `/opt/iaachz-tunnels` y
-   `/opt/iaachz-dns-proveedor`.
+   `/opt/iaachz-dns-proveedor` y `/opt/iaachz-lftp-web` (el motor de archivos corre desde `/opt/lftp-web`).
 2. Instala los comandos `v-hp` y `v-tunnel` en `/usr/local/hestia/bin`.
 3. Crea las tareas de `cron` (`/etc/cron.d/iaachz-panel`) y los servicios `iaachz-panel-sampler` y
    `iaachz-panel-firewall`.

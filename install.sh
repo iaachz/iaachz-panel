@@ -1,9 +1,9 @@
 #!/bin/bash
 # iaachz-panel · instalador completo.
 #
-#   sudo ./install.sh                  instala todo: núcleo, subdominios, túneles y DNS del proveedor
+#   sudo ./install.sh                  instala todo: núcleo, subdominios, túneles, DNS del proveedor y archivos (lftp-web)
 #   sudo ./install.sh --check          solo comprueba los requisitos, no cambia nada
-#   sudo ./install.sh --only MÓDULO    instala un módulo: core | subdominio | tunnels | dns-proveedor
+#   sudo ./install.sh --only MÓDULO    instala un módulo: core | subdominio | tunnels | dns-proveedor | lftp-web
 #
 # Cada módulo es idempotente: puedes volver a ejecutarlo para actualizar. Los ganchos de
 # /etc/hestiacp/hooks/post_install.sh reaplican los cambios cuando Hestia se actualiza.
@@ -24,7 +24,7 @@ while [ $# -gt 0 ]; do
 	shift
 done
 
-case "$ONLY" in ""|core|subdominio|tunnels|dns-proveedor) ;; *) echo "Módulo desconocido: $ONLY"; exit 2 ;; esac
+case "$ONLY" in ""|core|subdominio|tunnels|dns-proveedor|lftp-web) ;; *) echo "Módulo desconocido: $ONLY"; exit 2 ;; esac
 quiere() { [ -z "$ONLY" ] || [ "$ONLY" = "$1" ]; }
 
 ok()   { printf '  [ok]   %s\n' "$1"; }
@@ -83,6 +83,12 @@ fi
 if quiere dns-proveedor; then
 	echo "== DNS del proveedor"
 	bash "$REPO/addons/dns-proveedor/install.sh"
+fi
+
+if quiere lftp-web; then
+	echo "== Archivos y transferencias (lftp-web)"
+	[ -d $HESTIA/web/pro ] || { echo "Archivos y transferencias necesita el módulo 'core' (instálalo antes)."; exit 1; }
+	bash "$REPO/addons/lftp-web/install.sh"
 fi
 
 # Versión instalada: la compara Herramientas y ajustes → Actualizaciones del panel con la de GitHub
